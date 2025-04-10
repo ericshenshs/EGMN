@@ -10,7 +10,7 @@ PyTorch implementation of our paper "Multi-Granularity Distribution Modeling for
 
 This repository also contains the implementation of all baselines and the processing of KuaiRec dataset mentioned in our paper.
 
-_Other datatsets and **more in-depth details** in our experiment section will be synchronized in this repository if the manuscript is accepted._
+_**Other datatsets** and **more in-depth details** in our experiment section will be synchronized in this repository if the manuscript is accepted._
 
 Dependencies
 ------------
