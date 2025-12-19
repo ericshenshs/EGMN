@@ -9,10 +9,14 @@
 \@ifundefined{sectionfile}{\def\sectionfile{}}{}
 \edef\SectionFileTmp{\sectionfile}
 \ifx\SectionFileTmp\@empty
-  % No-op when included from main.tex (close the conditional before \endinput)
+  % When included from main.tex, do nothing and stop reading this file.
   \makeatother
-  \expandafter\endinput\fi
-\makeatother
+  \let\SectionWrapperStop\endinput
+\else
+  \makeatother
+  \let\SectionWrapperStop\relax
+\fi
+\SectionWrapperStop
 
 \documentclass[11pt]{article}
 \usepackage[margin=1in]{geometry}

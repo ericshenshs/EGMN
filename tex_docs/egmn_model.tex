@@ -1,36 +1,21 @@
-\section{What is the model (EGMN)?}
+\section{EGMN model (Q\&A)}
 
-The main proposed model in this repository is \textbf{EGMN} (Exponential--Gaussian Mixture Network), implemented in \lstinline|model/egmn.py|. EGMN models watch time as a \textbf{mixture distribution} designed to capture both short ``quick-skip'' behavior and longer watch-time behavior.
+\subsection{Q: What is EGMN in this repository?}
+\noindent\textbf{A:} EGMN (Exponential--Gaussian Mixture Network), implemented in \lstinline|model/egmn.py|, predicts watch time by modeling a \textbf{mixture distribution} that captures short ``quick-skip'' behavior and longer watch-time behavior.
 
-\subsection{Distribution family}
-EGMN uses a mixture with:
-\begin{itemize}[leftmargin=*]
-  \item \textbf{One Exponential component} (to capture the spike near zero watch time).
-  \item \textbf{Multiple Gaussian components} (to capture longer watch time). In the code, the Gaussian components are implemented as \textbf{Normals truncated at 0} (to avoid negative time).
-\end{itemize}
+\subsection{Q: What distribution family does EGMN use?}
+\noindent\textbf{A:} EGMN uses a mixture consisting of \(1\times\) Exponential (short peak near 0) plus \(K\times\) Gaussian components for longer watches, implemented as Normals truncated below at 0, i.e. \(p(y)=\pi_0\,\mathrm{Exp}(y;\lambda)+\sum_{k=1}^{K}\pi_k\,\mathrm{TN}(y;\mu_k,\sigma_k,\text{lower}=0)\) for \(y\ge 0\).
 
-\subsection{Architecture diagram}
+\subsection{Q: What does the architecture look like end-to-end?}
+\noindent\textbf{A:} The model encodes sparse/sequence/continuous features into a shared representation, feeds it through a shared MLP trunk, and uses separate heads to produce \(\pi\) logits, \(\lambda\), \(\mu\), and \(\sigma\), which parameterize the mixture used for training and prediction.
 \begin{figure}[h]
   \centering
   \includegraphics[width=\textwidth]{figures/egmn_arch.png}
   \caption{EGMN architecture overview: feature encoders + shared MLP + mixture-parameter heads, producing a distribution and a mean prediction.}
 \end{figure}
 
-If we denote the mixture weights by \(\pi\), exponential rate by \(\lambda\), and Gaussian parameters \((\mu_k, \sigma_k)\), the model defines a mixture density over watch time \(y\ge 0\) of the form:
-\[
- p(y) = \pi_0\,\mathrm{Exp}(y;\lambda) + \sum_{k=1}^{K} \pi_k\,\mathrm{TN}(y;\mu_k,\sigma_k,\text{lower}=0),
-\]
-where \(\mathrm{TN}(\cdot)\) is a Normal distribution truncated below at 0.
-
-\subsection{Neural architecture}
-\begin{itemize}[leftmargin=*]
-  \item \textbf{Inputs}: a feature dictionary produced by the dataloader (sparse IDs, sequence features with masks, and continuous features such as \lstinline|duration|).
-  \item \textbf{Feature encoding}: embeddings for sparse/sequence features, and linear transforms for continuous features.
-  \item \textbf{Shared trunk}: a multi-layer perceptron (MLP) over the concatenated feature representation.
-  \item \textbf{Output heads}: predict mixture logits (converted to weights by softmax), the exponential rate \(\lambda\) (via softplus), and Gaussian parameters \(\mu,\sigma\) (also via softplus for positivity constraints in the implementation).
-\end{itemize}
-
-\subsection{Code snippet: heads and parameterization}
+\subsection{Q: What parameters (heads) does EGMN output in code?}
+\noindent\textbf{A:}
 \begin{lstlisting}[language=Python]
 # model/egmn.py (illustrative excerpt)
 self.lambda_layer = nn.Sequential(
@@ -44,30 +29,18 @@ self.gauss_mu = nn.Sequential(nn.Linear(hidden_dim, comp_num), nn.Softplus())
 self.gauss_sigma = nn.Sequential(nn.Linear(hidden_dim, comp_num), nn.Softplus())
 \end{lstlisting}
 
-\subsection{Training objective (as implemented)}
-Training uses a combination of:
-\begin{itemize}[leftmargin=*]
-  \item \textbf{Negative log-likelihood (NLL)} of the observed watch time under the mixture.
-  \item \textbf{Reconstruction regularizer}: an L1 loss between the observed label \(y\) and the model's mixture \emph{mean} prediction.
-  \item \textbf{Mixture entropy term}: computed from the mixture weights \(\pi\), weighted by a hyperparameter (\lstinline|--alpha| in \lstinline|run_egmn.py|).
-\end{itemize}
+\subsection{Q: What loss does EGMN train with in the run script?}
+\noindent\textbf{A:} Training minimizes a mixture negative log-likelihood plus regularizers: \(\mathcal{L}=\mathcal{L}_{\mathrm{NLL}}+\alpha\,\mathcal{L}_{\mathrm{entropy}}+\beta\,\mathcal{L}_{\mathrm{reg}}\), where \(\mathcal{L}_{\mathrm{reg}}\) is an L1 reconstruction between label and mixture-mean prediction and \(\mathcal{L}_{\mathrm{entropy}}\) is a mixture-weight entropy term.
 
-In the training script, the total loss is:
-\[
-\mathcal{L} = \mathcal{L}_{\mathrm{NLL}} + \alpha\,\mathcal{L}_{\mathrm{entropy}} + \beta\,\mathcal{L}_{\mathrm{reg}},
-\]
-with \(\alpha\) and \(\beta\) controlled by command-line flags.
+\subsection{Q: What scalar output is used for evaluation?}
+\noindent\textbf{A:} The evaluation uses a point estimate equal to the \textbf{mixture mean} (including the exponential mean \(1/\lambda\)), producing one scalar prediction per example.
 
-\subsection{Prediction used for evaluation}
-For evaluation, the code uses a \textbf{point prediction equal to the mixture mean}. In the implementation, the predicted value is computed as a weighted sum of component means (including the exponential mean \(1/\lambda\)).
-
-\subsection{Code snippet: prediction as mixture mean}
+\subsection{Q: How is the mixture-mean prediction computed (schematically)?}
+\noindent\textbf{A:}
 \begin{lstlisting}[language=Python]
 # model/egmn.py (illustrative excerpt)
 pi, lambda_, mu, sigma = self.forward(features)
 pi = torch.softmax(pi, dim=1)
-
-# component means: Exponential mean is 1/lambda; Gaussians use mu
 component_means = torch.concat([1 / lambda_, mu], dim=1)
 pred = torch.sum(pi * component_means, dim=1)
 \end{lstlisting}

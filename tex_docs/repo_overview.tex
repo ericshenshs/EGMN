@@ -1,24 +1,16 @@
-\section{What is in this repository?}
+\section{Repository overview (Q\&A)}
 
-This repository is a PyTorch research codebase for \textbf{video watch-time prediction}. It contains an implementation of the paper:
+\subsection{Q: What is this repository?}
+\noindent\textbf{A:} This is a PyTorch research codebase for \textbf{video watch-time prediction}, implementing the EGMN paper and several baselines, with preprocessing and experiments primarily for the public \href{https://kuairec.com/}{KuaiRec} dataset.
 
-\begin{quote}
-\textit{``Multi-Granularity Distribution Modeling for Video Watch Time Prediction via Exponential-Gaussian Mixture Network''}
-\end{quote}
+\subsection{Q: What are the main folders and entrypoints?}
+\noindent\textbf{A:} Models live in \lstinline|model/|, dataset loading is in \lstinline|dataloader/|, KuaiRec preprocessing is in \lstinline|dataset/kuairec/|, runnable experiments are in \lstinline|run_*.py|, and shared metrics/utilities are in \lstinline|utils.py|.
 
-The repository also includes several baseline models and code to preprocess the public \href{https://kuairec.com/}{KuaiRec} dataset.
+\subsection{Q: What metrics are reported by the run scripts?}
+\noindent\textbf{A:} The run scripts evaluate on \lstinline|test| and report \textbf{MAE} (absolute error), \textbf{XAUC} (ordering agreement after sorting by predicted score), and \textbf{KL} divergence between binned empirical distributions.
 
-\subsection{High-level structure}
-\begin{itemize}[leftmargin=*]
-  \item \lstinline|model/|: Model implementations (proposed EGMN and baselines).
-  \item \lstinline|dataloader/|: Dataset loaders that read preprocessed files and provide PyTorch \lstinline|DataLoader|s.
-  \item \lstinline|dataset/kuairec/|: KuaiRec preprocessing scripts.
-  \item \lstinline|run_*.py|: Entrypoints to train/evaluate each method.
-  \item \lstinline|utils.py|: Evaluation metrics (MAE, XAUC, KL divergence) and helper utilities.
-\end{itemize}
-
-\subsection{Code examples}
-\paragraph{Typical entrypoint invocation}
+\subsection{Q: How do you run EGMN and baselines (example commands)?}
+\noindent\textbf{A:}
 \begin{lstlisting}[language=bash]
 # Train + evaluate the proposed EGMN model on KuaiRec
 python run_egmn.py --dataset_name kuairec --device cuda:0
@@ -28,16 +20,17 @@ python run_cread.py --dataset_name kuairec
 python run_d2q.py --dataset_name kuairec
 \end{lstlisting}
 
-\paragraph{What the dataloader yields}
-The KuaiRec dataloader returns a tuple \lstinline|(features_dict, label)|, where \lstinline|features_dict| contains tensors keyed by feature name (e.g. \lstinline|duration|, categorical IDs, and sequence masks).
+\subsection{Q: What does the dataloader yield to the model?}
+\noindent\textbf{A:}
 \begin{lstlisting}[language=Python]
 # Pseudocode reflecting dataloader/kuairec.py
 for features, label in dataloaders["train"]:
-    # features is a dict of tensors, label is the normalized play_time
+    # features: dict[str, Tensor], label: normalized play_time
     y_hat = model.predict(features)
 \end{lstlisting}
 
-\paragraph{Metrics used in evaluation}
+\subsection{Q: What do the evaluation helper functions look like (schematically)?}
+\noindent\textbf{A:}
 \begin{lstlisting}[language=Python]
 # utils.py (simplified)
 def eval_mae(labels, scores):
@@ -48,16 +41,6 @@ def eval_xauc(labels, preds):
     ...
 
 def eval_kl(samples_p, samples_q, bins=100, epsilon=1e-10):
-    hist_p, bin_edges = np.histogram(samples_p, bins=bins, density=True)
-    hist_q, _ = np.histogram(samples_q, bins=bin_edges, density=True)
+    # binned empirical KL divergence
     ...
-    return np.sum(hist_p * np.log(hist_p / hist_q))
 \end{lstlisting}
-
-\subsection{Evaluation outputs}
-The run scripts train on \lstinline|train| and evaluate on \lstinline|test|, printing (at least):
-\begin{itemize}[leftmargin=*]
-  \item \textbf{MAE}: mean absolute error on watch-time prediction.
-  \item \textbf{XAUC}: a ranking-style metric computed from label--prediction ordering.
-  \item \textbf{KL}: KL divergence between binned empirical distributions.
-\end{itemize}

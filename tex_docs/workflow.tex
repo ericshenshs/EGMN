@@ -1,26 +1,19 @@
-\section{Workflow: dataset preprocessing and running experiments}
+\section{Workflow (Q\&A)}
 
-\subsection{Dataset preprocessing (KuaiRec)}
-The KuaiRec raw data must be preprocessed before training. The provided script in \lstinline|dataset/kuairec/kuairec_process.py|:
-\begin{itemize}[leftmargin=*]
-  \item merges multiple KuaiRec feature CSVs into a single table,
-  \item builds vocabularies for sparse/sequence features,
-  \item constructs a feature \lstinline|description| schema used by models and dataloaders,
-  \item splits into \lstinline|train|/\lstinline|test|,
-  \item writes \lstinline|kuairec_data.pkl| containing the processed data and schema.
-\end{itemize}
+\subsection{Q: What preprocessing is required for KuaiRec before training?}
+\noindent\textbf{A:} You must run \lstinline|dataset/kuairec/kuairec_process.py| to merge KuaiRec raw CSVs, build vocabularies for sparse/sequence features, create the feature schema (\lstinline|description|), and write a preprocessed pickle used by the dataloader.
 
-It also produces duration buckets and per-bucket play-time quantiles used by the D2Q baseline.
+\subsection{Q: What files does preprocessing produce that training depends on?}
+\noindent\textbf{A:} Preprocessing produces \lstinline|kuairec_data.pkl| (train/test splits + schema) and also writes duration buckets and per-bucket play-time quantiles used by the D2Q baseline.
 
-\subsection{Code snippet: preprocessing outputs (D2Q support)}
+\subsection{Q: What does the D2Q preprocessing artifact generation look like (schematically)?}
+\noindent\textbf{A:}
 \begin{lstlisting}[language=Python]
-# dataset/kuairec/kuairec_process.py (illustrative excerpt)
 n_bins = 50
 df["duration_bucket"], bins = pd.qcut(df["duration"], q=n_bins, labels=False,
                                       retbins=True, duplicates="drop")
 desc.append(("duration_bucket", len(bins) - 1, "spr"))
 
-# Per-bucket play-time quantiles for D2Q mapping
 quantile_num = 100
 quantiles = np.linspace(0, 1, quantile_num + 1)
 quantile_df = (df_train.groupby("duration_bucket")["play_time"]
@@ -31,25 +24,12 @@ quantile_df.pivot(index="duration_bucket", columns="quantile",
 )
 \end{lstlisting}
 
-\subsection{Training / evaluation entrypoints}
-Each method has a \lstinline|run_*.py| entrypoint. Typical usage is:
-\begin{itemize}[leftmargin=*]
-  \item \lstinline|python run_egmn.py --dataset_name kuairec|
-  \item \lstinline|python run_cread.py --dataset_name kuairec|
-  \item \lstinline|python run_d2q.py --dataset_name kuairec|
-\end{itemize}
+\subsection{Q: How do you run training/evaluation for a method?}
+\noindent\textbf{A:} Run the corresponding entrypoint (e.g. \lstinline|python run_egmn.py --dataset_name kuairec|), which loads \lstinline|./dataset/kuairec/kuairec_data.pkl| via \lstinline|dataloader/kuairec.py|, trains for several epochs, evaluates on \lstinline|test|, and prints MAE/XAUC/KL.
 
-These scripts:
-\begin{itemize}[leftmargin=*]
-  \item load \lstinline|./dataset/kuairec/kuairec_data.pkl| through \lstinline|dataloader/kuairec.py|,
-  \item train for a fixed number of epochs,
-  \item evaluate on the test set,
-  \item print MAE, XAUC, and KL divergence.
-\end{itemize}
-
-\subsection{Code snippet: EGMN training loop structure}
+\subsection{Q: What does the EGMN training loop structure look like (schematically)?}
+\noindent\textbf{A:}
 \begin{lstlisting}[language=Python]
-# run_egmn.py (illustrative excerpt)
 for epoch in range(1, args.epoch + 1):
     for features, label in dataloaders["train"]:
         pi, lambda_, mu, sigma = model(features)
@@ -61,5 +41,5 @@ for epoch in range(1, args.epoch + 1):
         optimizer.step()
 \end{lstlisting}
 
-\subsection{Dependencies}
-The README indicates the project was tested with Python 3.x and PyTorch (e.g. 2.1.0), and expects common scientific Python packages (NumPy, pandas, scikit-learn).
+\subsection{Q: What dependencies does this repo assume?}
+\noindent\textbf{A:} The README indicates Python 3.x with PyTorch (tested around 2.1.0) and common scientific packages such as NumPy, pandas, and scikit-learn.

@@ -1,72 +1,37 @@
-\section{Is this a retrieval model or a ranking model? What are the outputs?}
+\section{Retrieval vs. ranking vs. outputs (Q\&A)}
 
-\subsection{Short answer}
-This repository implements \textbf{watch-time prediction} for already-observed (user, item/video) interactions. In that sense, the provided training/evaluation scripts operate as a \textbf{pointwise regression / distribution modeling} setup rather than a classic \textbf{retrieval} system.
+\subsection{Q: Is this a retrieval model?}
+\noindent\textbf{A:} No: the provided scripts score already-observed (user, video) interaction records from a dataset loader and do not implement large-scale candidate generation (ANN/top-$K$ retrieval) over a corpus.
 
-\subsection{Retrieval vs. ranking vs. pointwise prediction}
-\begin{itemize}[leftmargin=*]
-  \item \textbf{Retrieval} typically means: given a query/user context, score (often via approximate nearest neighbors) a very large candidate set to retrieve top-$K$ items.
-  \item \textbf{Ranking} typically means: given a smaller candidate set, assign scores and sort to produce an ordered list.
-  \item \textbf{Pointwise prediction} (what the run scripts do here) means: predict a target value for each example independently (e.g. watch time) and optimize a pointwise loss (NLL, MAE/L1/MSE-like components).
-\end{itemize}
+\subsection{Q: Is this a ranking model?}
+\noindent\textbf{A:} Not in the training-objective sense: the training loops use pointwise losses (likelihood/regression-style) per example rather than pairwise/listwise ranking losses over candidate sets.
 
-In this repo, the scripts in \lstinline|run_*.py| iterate over a \lstinline|DataLoader| of interaction records and predict a watch-time value/distribution for each record. They do not generate candidates, do not compute top-$K$ lists, and do not train with a pairwise/listwise ranking loss.
+\subsection{Q: What is the final output used for evaluation?}
+\noindent\textbf{A:} Each model produces a scalar watch-time prediction per example for evaluation (e.g. EGMN uses the mixture mean; other baselines output scalars or reconstruct scalars from intermediate representations).
 
-\subsection{What does the model output?}
-There are two useful notions of ``output'':
-\begin{itemize}[leftmargin=*]
-  \item \textbf{Internal outputs} used to define a distribution / loss (e.g. mixture parameters).
-  \item \textbf{Final prediction} used for evaluation (a scalar watch-time prediction).
-\end{itemize}
+\subsection{Q: What does EGMN output internally?}
+\noindent\textbf{A:} EGMN outputs mixture-parameter tensors \(\pi\) logits, \(\lambda\), and \((\mu,\sigma)\) for multiple Gaussian components, which define the mixture distribution and its mean prediction.
 
-\subsection{EGMN outputs}
-EGMN (\lstinline|model/egmn.py|) produces parameters of a mixture distribution:
-\begin{itemize}[leftmargin=*]
-  \item mixture logits \(\pi\) (converted to mixture weights via softmax),
-  \item exponential rate \(\lambda\),
-  \item Gaussian parameters \(\mu\) and \(\sigma\) for multiple components.
-\end{itemize}
-
-The evaluation code uses a \textbf{scalar point prediction} computed as the \textbf{mixture mean}.
-
+\subsection{Q: What does the EGMN evaluation loop look like (schematically)?}
+\noindent\textbf{A:}
 \begin{lstlisting}[language=Python]
-# run_egmn.py (illustrative structure)
 with torch.no_grad():
     for features, label in dataloaders["test"]:
-        y = model.predict(features)   # scalar per example
-        # collect y for MAE / XAUC / KL
-
-# model/egmn.py (illustrative)
-pi, lambda_, mu, sigma = self.forward(features)
-pi = torch.softmax(pi, dim=1)
-component_means = torch.concat([1 / lambda_, mu], dim=1)
-pred = torch.sum(pi * component_means, dim=1)
+        y = model.predict(features)  # scalar per example
 \end{lstlisting}
 
-\subsection{Baseline outputs (examples)}
-Different baselines output different intermediate objects, but they all ultimately provide a scalar prediction for evaluation:
-
-\paragraph{Wide \& Deep (\lstinline|WideAndDeep|)}
-Outputs a \textbf{single probability-like scalar} (sigmoid of an MLP + optional linear part). In this repo, it is used as a pointwise predictor.
-
-\paragraph{CREAD (\lstinline|Cread|)}
-Outputs a \textbf{vector of bucket/head probabilities}. The training script discretizes the label into multiple binary thresholds and trains with BCE. At test time it reconstructs a \textbf{scalar watch-time estimate} from the bucket outputs.
-
-\paragraph{D2Q (\lstinline|D2Q|)}
-Outputs a \textbf{normalized quantile score} (sigmoid). The training script maps labels into bucket-specific quantiles, trains with MSE, then maps predicted quantiles back to values.
-
+\subsection{Q: What are typical output shapes for some baselines?}
+\noindent\textbf{A:}
 \begin{lstlisting}[language=Python]
-# Examples of different "output shapes"
-
 # Wide&Deep: scalar
-p = wide_and_deep(features)            # shape: [batch]
+p = wide_and_deep(features)      # [batch]
 
-# CREAD: vector over M bucket heads
-bucket_probs = cread(features)         # shape: [batch, M]
+# CREAD: per-bucket/head probabilities
+bucket_probs = cread(features)   # [batch, M]
 
 # D2Q: scalar quantile (later mapped back to value)
-q = d2q(features)                      # shape: [batch]
+q = d2q(features)                # [batch]
 \end{lstlisting}
 
-\subsection{Is XAUC a ranking metric?}
-The repo reports \textbf{XAUC}, which is computed by sorting examples by predicted score and measuring agreement with label ordering. This is a \textbf{ranking-style evaluation metric}, but it does not mean the models are trained with a retrieval/ranking objective; training is still pointwise (NLL/regression-style) in the provided scripts.
+\subsection{Q: If training is pointwise, why report XAUC?}
+\noindent\textbf{A:} XAUC is a ranking-style evaluation metric computed by sorting examples by predicted score and measuring label-order agreement, but it does not change the fact that the provided training scripts optimize pointwise objectives.

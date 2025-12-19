@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2025.12.19)  19 DEC 2025 06:20
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2025.12.19)  19 DEC 2025 06:28
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -518,18 +518,8 @@ LaTeX Font Info:    Trying to load font information for U+msb on input line 28.
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
 (./section_wrapper.tex) (./repo_overview.tex
-Overfull \hbox (18.61095pt too wide) in paragraph at lines 6--7
-[]\T1/lmr/m/it/10.95 ``Multi-Granularity Dis-tri-bu-tion Mod-el-ing for Video W
-atch Time Pre-dic-tion via Exponential-
- []
-
-LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 1
-2.
-(/usr/share/texmf/tex/latex/lm/ts1lmr.fd
-File: ts1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
-)
-LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 1
-3.
+LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 7
+.
 
 (/usr/share/texmf/tex/latex/lm/t1lmtt.fd
 File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
@@ -544,64 +534,54 @@ File: lstlang1.sty 2023/02/27 1.9 listings language file
 File: lstlang1.sty 2023/02/27 1.9 listings language file
 )
 LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <10> not available
-(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 35.
+(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 27.
  [1
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}{/usr/share/texmf/fonts/enc/
-dvips/lm/lm-ec.enc}{/usr/share/texmf/fonts/enc/dvips/lm/lm-ts1.enc}]) (./egmn_m
-odel.tex
-<figures/egmn_arch.png, id=161, 726.9705pt x 376.7895pt>
+dvips/lm/lm-ec.enc}]) (./egmn_model.tex
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <10.95> on input line 7.
+<figures/egmn_arch.png, id=173, 726.9705pt x 376.7895pt>
 File: figures/egmn_arch.png Graphic file (type png)
 <use figures/egmn_arch.png>
-Package pdftex.def Info: figures/egmn_arch.png  used on input line 15.
+Package pdftex.def Info: figures/egmn_arch.png  used on input line 13.
 (pdftex.def)             Requested size: 469.75502pt x 243.48444pt.
 
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10.95> on input line 19.
-[2{/usr/share/texmf/fonts/enc/dvips/lm/lm-mathit.enc}{/usr/share/texmf/fonts/en
-c/dvips/lm/lm-rm.enc}{/usr/share/texmf/fonts/enc/dvips/lm/lm-mathsy.enc}{/usr/s
-hare/texmf/fonts/enc/dvips/lm/lm-mathex.enc}] [3 <./figures/egmn_arch.png (PNG 
-copy)>]) (./ranking_retrieval_outputs.tex [4]
-LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <10.95> not available
-(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 50.
- [5]) (./optimization.tex
-Overfull \hbox (0.88159pt too wide) in paragraph at lines 3--4
-\T1/lmr/m/n/10.95 This sec-tion ex-plains (at a prac-ti-cal im-ple-men-ta-tion 
-level) what pa-ram-e-ters are up-dated by gradient-
- []
-
-[6] [7]) (./workflow.tex [8]) [9] (./main.aux)
+[2{/usr/share/texmf/fonts/enc/dvips/lm/lm-rm.enc}{/usr/share/texmf/fonts/enc/dv
+ips/lm/lm-mathsy.enc}{/usr/share/texmf/fonts/enc/dvips/lm/lm-mathit.enc}{/usr/s
+hare/texmf/fonts/enc/dvips/lm/lm-mathex.enc}]) (./ranking_retrieval_outputs.tex
+[3 <./figures/egmn_arch.png (PNG copy)>]) (./optimization.tex [4])
+(./workflow.tex [5]) [6] (./main.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-01-22>
  ***********
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: D1641ECD29B3EA8A6868E346B81DE052;7202.
+(rerunfilecheck)             Checksum: 5A13C6D44C466EEE215CCB899C5A7BEF;11366.
  ) 
 Here is how much of TeX's memory you used:
- 13117 strings out of 476182
- 195190 string characters out of 5795594
- 2142975 words of memory out of 5000000
- 34742 multiletter control sequences out of 15000+600000
- 611596 words of font info for 76 fonts, out of 8000000 for 9000
+ 13009 strings out of 476182
+ 193245 string characters out of 5795594
+ 2080975 words of memory out of 5000000
+ 34689 multiletter control sequences out of 15000+600000
+ 606650 words of font info for 73 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 75i,6n,79p,454b,2041s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,7n,79p,543b,2045s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texmf/fonts/type1/public/lm/lmbx10.pfb></usr/share/texmf/fonts/ty
 pe1/public/lm/lmbx12.pfb></usr/share/texmf/fonts/type1/public/lm/lmex10.pfb></u
 sr/share/texmf/fonts/type1/public/lm/lmmi10.pfb></usr/share/texmf/fonts/type1/p
 ublic/lm/lmmi8.pfb></usr/share/texmf/fonts/type1/public/lm/lmr10.pfb></usr/shar
 e/texmf/fonts/type1/public/lm/lmr17.pfb></usr/share/texmf/fonts/type1/public/lm
-/lmr8.pfb></usr/share/texmf/fonts/type1/public/lm/lmri10.pfb></usr/share/texmf/
-fonts/type1/public/lm/lmsy10.pfb></usr/share/texmf/fonts/type1/public/lm/lmtk10
-.pfb></usr/share/texmf/fonts/type1/public/lm/lmtt10.pfb></usr/share/texmf/fonts
-/type1/public/lm/lmtti10.pfb>
-Output written on main.pdf (9 pages, 436544 bytes).
+/lmr8.pfb></usr/share/texmf/fonts/type1/public/lm/lmsy10.pfb></usr/share/texmf/
+fonts/type1/public/lm/lmtk10.pfb></usr/share/texmf/fonts/type1/public/lm/lmtt10
+.pfb></usr/share/texmf/fonts/type1/public/lm/lmtti10.pfb>
+Output written on main.pdf (6 pages, 396702 bytes).
 PDF statistics:
- 428 PDF objects out of 1000 (max. 8388607)
- 384 compressed objects within 4 object streams
- 177 named destinations out of 1000 (max. 500000)
- 262 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 362 PDF objects out of 1000 (max. 8388607)
+ 324 compressed objects within 4 object streams
+ 128 named destinations out of 1000 (max. 500000)
+ 294 words of extra memory for PDF output out of 10000 (max. 10000000)
 
