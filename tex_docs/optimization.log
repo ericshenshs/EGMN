@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2025.12.19)  19 DEC 2025 06:06
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2025.12.19)  19 DEC 2025 06:08
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -369,7 +369,7 @@ File: l3backend-pdftex.def 2024-01-04 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count302
 \l__pdf_internal_box=\box56
 )
-No file optimization.aux.
+(./optimization.aux)
 \openout1 = `optimization.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 25.
@@ -390,6 +390,7 @@ LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 25.
 LaTeX Font Info:    ... okay on input line 25.
 LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 25.
 LaTeX Font Info:    ... okay on input line 25.
+
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
 *geometry* verbose mode - [ preamble ] result:
@@ -425,11 +426,12 @@ LaTeX Font Info:    ... okay on input line 25.
 * (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
 Package hyperref Info: Link coloring OFF on input line 25.
+(./optimization.out) (./optimization.out)
 \@outlinefile=\write3
 \openout3 = `optimization.out'.
 
 \c@lstlisting=\count303
-(./optimization.tex
+ (./optimization.tex
 Overfull \hbox (0.88159pt too wide) in paragraph at lines 3--4
 \T1/lmr/m/n/10.95 This sec-tion ex-plains (at a prac-ti-cal im-ple-men-ta-tion 
 level) what pa-ram-e-ters are up-dated by gradient-
@@ -504,21 +506,14 @@ n.aux)
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-01-22>
  ***********
-
-
-Package rerunfilecheck Warning: File `optimization.out' has changed.
-(rerunfilecheck)                Rerun to get outlines right
-(rerunfilecheck)                or use package `bookmark'.
-
-Package rerunfilecheck Info: Checksums for `optimization.out':
-(rerunfilecheck)             Before: <no file>
-(rerunfilecheck)             After:  D1567593C2FD23FC670A999CA71F932E;1826.
+Package rerunfilecheck Info: File `optimization.out' has not changed.
+(rerunfilecheck)             Checksum: D1567593C2FD23FC670A999CA71F932E;1826.
  ) 
 Here is how much of TeX's memory you used:
- 11906 strings out of 476182
- 177587 string characters out of 5795594
+ 11922 strings out of 476182
+ 177856 string characters out of 5795594
  2179975 words of memory out of 5000000
- 33725 multiletter control sequences out of 15000+600000
+ 33735 multiletter control sequences out of 15000+600000
  598266 words of font info for 67 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
  79i,6n,82p,488b,2166s stack positions out of 10000i,1000n,20000p,200000b,200000s
@@ -530,10 +525,10 @@ texmf/fonts/type1/public/lm/lmri10.pfb></usr/share/texmf/fonts/type1/public/lm/
 lmsy10.pfb></usr/share/texmf/fonts/type1/public/lm/lmtk10.pfb></usr/share/texmf
 /fonts/type1/public/lm/lmtt10.pfb></usr/share/texmf/fonts/type1/public/lm/lmtti
 10.pfb>
-Output written on optimization.pdf (2 pages, 212483 bytes).
+Output written on optimization.pdf (2 pages, 213171 bytes).
 PDF statistics:
- 134 PDF objects out of 1000 (max. 8388607)
- 104 compressed objects within 2 object streams
+ 156 PDF objects out of 1000 (max. 8388607)
+ 126 compressed objects within 2 object streams
  43 named destinations out of 1000 (max. 500000)
- 1 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 57 words of extra memory for PDF output out of 10000 (max. 10000000)
 

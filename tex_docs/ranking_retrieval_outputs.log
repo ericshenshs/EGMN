@@ -2,7 +2,7 @@ This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloade
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
-**\def\sectionfile{repo_overview.tex}\input{section_wrapper.tex}
+**\def\sectionfile{ranking_retrieval_outputs.tex}\input{section_wrapper.tex}
 (./section_wrapper.tex
 (/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
 Document Class: article 2023/05/17 v1.4n Standard LaTeX document class
@@ -369,8 +369,8 @@ File: l3backend-pdftex.def 2024-01-04 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count302
 \l__pdf_internal_box=\box56
 )
-(./repo_overview.aux)
-\openout1 = `repo_overview.aux'.
+No file ranking_retrieval_outputs.aux.
+\openout1 = `ranking_retrieval_outputs.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 25.
 LaTeX Font Info:    ... okay on input line 25.
@@ -390,7 +390,6 @@ LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 25.
 LaTeX Font Info:    ... okay on input line 25.
 LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 25.
 LaTeX Font Info:    ... okay on input line 25.
-
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
 *geometry* verbose mode - [ preamble ] result:
@@ -426,21 +425,55 @@ LaTeX Font Info:    ... okay on input line 25.
 * (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
 Package hyperref Info: Link coloring OFF on input line 25.
-(./repo_overview.out) (./repo_overview.out)
 \@outlinefile=\write3
-\openout3 = `repo_overview.out'.
+\openout3 = `ranking_retrieval_outputs.out'.
 
 \c@lstlisting=\count303
- (./repo_overview.tex
-Overfull \hbox (18.61095pt too wide) in paragraph at lines 6--7
-[]\T1/lmr/m/it/10.95 ``Multi-Granularity Dis-tri-bu-tion Mod-el-ing for Video W
-atch Time Pre-dic-tion via Exponential-
- []
-
-LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 1
-2.
-(/usr/share/texmf/tex/latex/lm/ts1lmr.fd
+(./ranking_retrieval_outputs.tex
+LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 7
+.
+ (/usr/share/texmf/tex/latex/lm/ts1lmr.fd
 File: ts1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
+)
+LaTeX Font Info:    Trying to load font information for OT1+lmr on input line 8
+.
+
+(/usr/share/texmf/tex/latex/lm/ot1lmr.fd
+File: ot1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
+)
+LaTeX Font Info:    Trying to load font information for OML+lmm on input line 8
+.
+
+(/usr/share/texmf/tex/latex/lm/omllmm.fd
+File: omllmm.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
+)
+LaTeX Font Info:    Trying to load font information for OMS+lmsy on input line 
+8.
+
+(/usr/share/texmf/tex/latex/lm/omslmsy.fd
+File: omslmsy.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
+)
+LaTeX Font Info:    Trying to load font information for OMX+lmex on input line 
+8.
+
+(/usr/share/texmf/tex/latex/lm/omxlmex.fd
+File: omxlmex.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
+)
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <10.95> on input line 8.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <8> on input line 8.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <6> on input line 8.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 8.
+
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd
+File: umsa.fd 2013/01/14 v3.01 AMS symbols A
+)
+LaTeX Font Info:    Trying to load font information for U+msb on input line 8.
+
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd
+File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
 LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 1
 3.
@@ -451,43 +484,48 @@ File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 (/usr/share/texlive/texmf-dist/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2023/02/27 1.9 listings language file
 )
-(/usr/share/texlive/texmf-dist/tex/latex/listings/lstlang1.sty
-File: lstlang1.sty 2023/02/27 1.9 listings language file
-)
-(/usr/share/texlive/texmf-dist/tex/latex/listings/lstlang1.sty
-File: lstlang1.sty 2023/02/27 1.9 listings language file
-)
 LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <10> not available
 (Font)              Font shape `T1/lmtt/b/n' tried instead on input line 35.
  [1
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}{/usr/share/texmf/fonts/enc/
-dvips/lm/lm-ec.enc}{/usr/share/texmf/fonts/enc/dvips/lm/lm-ts1.enc}]) [2]
-(./repo_overview.aux)
+dvips/lm/lm-ec.enc}{/usr/share/texmf/fonts/enc/dvips/lm/lm-ts1.enc}{/usr/share/
+texmf/fonts/enc/dvips/lm/lm-mathit.enc}]
+LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <10.95> not available
+(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 50.
+) [2] (./ranking_retrieval_outputs.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-01-22>
  ***********
-Package rerunfilecheck Info: File `repo_overview.out' has not changed.
-(rerunfilecheck)             Checksum: 5485CC5291C610A8385A6DFA6C4A7810;625.
+
+
+Package rerunfilecheck Warning: File `ranking_retrieval_outputs.out' has change
+d.
+(rerunfilecheck)                Rerun to get outlines right
+(rerunfilecheck)                or use package `bookmark'.
+
+Package rerunfilecheck Info: Checksums for `ranking_retrieval_outputs.out':
+(rerunfilecheck)             Before: <no file>
+(rerunfilecheck)             After:  1D79ECCBB11C9D765586BF283A8380A9;1558.
  ) 
 Here is how much of TeX's memory you used:
- 11878 strings out of 476182
- 176405 string characters out of 5795594
- 2167975 words of memory out of 5000000
- 33729 multiletter control sequences out of 15000+600000
- 586010 words of font info for 51 fonts, out of 8000000 for 9000
+ 11886 strings out of 476182
+ 177462 string characters out of 5795594
+ 2057975 words of memory out of 5000000
+ 33715 multiletter control sequences out of 15000+600000
+ 591331 words of font info for 66 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 79i,6n,82p,489b,1316s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 79i,5n,82p,501b,1339s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texmf/fonts/type1/public/lm/lmbx10.pfb></usr/share/texmf/fonts/ty
-pe1/public/lm/lmbx12.pfb></usr/share/texmf/fonts/type1/public/lm/lmr10.pfb></us
-r/share/texmf/fonts/type1/public/lm/lmri10.pfb></usr/share/texmf/fonts/type1/pu
+pe1/public/lm/lmbx12.pfb></usr/share/texmf/fonts/type1/public/lm/lmmi10.pfb></u
+sr/share/texmf/fonts/type1/public/lm/lmr10.pfb></usr/share/texmf/fonts/type1/pu
 blic/lm/lmtk10.pfb></usr/share/texmf/fonts/type1/public/lm/lmtt10.pfb></usr/sha
 re/texmf/fonts/type1/public/lm/lmtti10.pfb>
-Output written on repo_overview.pdf (2 pages, 180800 bytes).
+Output written on ranking_retrieval_outputs.pdf (2 pages, 175109 bytes).
 PDF statistics:
- 110 PDF objects out of 1000 (max. 8388607)
- 90 compressed objects within 1 object stream
+ 97 PDF objects out of 1000 (max. 8388607)
+ 77 compressed objects within 1 object stream
  36 named destinations out of 1000 (max. 500000)
- 33 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 1 words of extra memory for PDF output out of 10000 (max. 10000000)
 
