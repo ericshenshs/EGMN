@@ -9,10 +9,9 @@
 \@ifundefined{sectionfile}{\def\sectionfile{}}{}
 \edef\SectionFileTmp{\sectionfile}
 \ifx\SectionFileTmp\@empty
-  % No-op when included from main.tex
+  % No-op when included from main.tex (close the conditional before \endinput)
   \makeatother
-  \endinput
-\fi
+  \expandafter\endinput\fi
 \makeatother
 
 \documentclass[11pt]{article}
