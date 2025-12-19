@@ -1,0 +1,17 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{hyperref}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{enumitem}
+
+% Usage: compile with something like
+% pdflatex -jobname=repo_overview "\\def\\sectionfile{repo_overview.tex}\\input{section_wrapper.tex}"
+\newcommand{\SectionFile}{\sectionfile}
+
+\begin{document}
+\input{\SectionFile}
+\end{document}
