@@ -1,0 +1,26 @@
+\section{What is in this repository?}
+
+This repository is a PyTorch research codebase for \textbf{video watch-time prediction}. It contains an implementation of the paper:
+
+\begin{quote}
+\textit{``Multi-Granularity Distribution Modeling for Video Watch Time Prediction via Exponential-Gaussian Mixture Network''}
+\end{quote}
+
+The repository also includes several baseline models and code to preprocess the public \href{https://kuairec.com/}{KuaiRec} dataset.
+
+\subsection{High-level structure}
+\begin{itemize}[leftmargin=*]
+  \item \texttt{model/}: Model implementations (proposed EGMN and baselines).
+  \item \texttt{dataloader/}: Dataset loaders that read preprocessed files and provide PyTorch \texttt{DataLoader}s.
+  \item \texttt{dataset/kuairec/}: KuaiRec preprocessing scripts.
+  \item \texttt{run\_*.py}: Entrypoints to train/evaluate each method.
+  \item \texttt{utils.py}: Evaluation metrics (MAE, XAUC, KL divergence) and helper utilities.
+\end{itemize}
+
+\subsection{Evaluation outputs}
+The run scripts train on \texttt{train} and evaluate on \texttt{test}, printing (at least):
+\begin{itemize}[leftmargin=*]
+  \item \textbf{MAE}: mean absolute error on watch-time prediction.
+  \item \textbf{XAUC}: a ranking-style metric computed from label--prediction ordering.
+  \item \textbf{KL}: KL divergence between binned empirical distributions.
+\end{itemize}

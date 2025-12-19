@@ -1,0 +1,41 @@
+\section{What is the model (EGMN)?}
+
+The main proposed model in this repository is \textbf{EGMN} (Exponential--Gaussian Mixture Network), implemented in \texttt{model/egmn.py}. EGMN models watch time as a \textbf{mixture distribution} designed to capture both short ``quick-skip'' behavior and longer watch-time behavior.
+
+\subsection{Distribution family}
+EGMN uses a mixture with:
+\begin{itemize}[leftmargin=*]
+  \item \textbf{One Exponential component} (to capture the spike near zero watch time).
+  \item \textbf{Multiple Gaussian components} (to capture longer watch time). In the code, the Gaussian components are implemented as \textbf{Normals truncated at 0} (to avoid negative time).
+\end{itemize}
+
+If we denote the mixture weights by \(\pi\), exponential rate by \(\lambda\), and Gaussian parameters \((\mu_k, \sigma_k)\), the model defines a mixture density over watch time \(y\ge 0\) of the form:
+\[
+ p(y) = \pi_0\,\mathrm{Exp}(y;\lambda) + \sum_{k=1}^{K} \pi_k\,\mathrm{TN}(y;\mu_k,\sigma_k,\text{lower}=0),
+\]
+where \(\mathrm{TN}(\cdot)\) is a Normal distribution truncated below at 0.
+
+\subsection{Neural architecture}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Inputs}: a feature dictionary produced by the dataloader (sparse IDs, sequence features with masks, and continuous features such as \texttt{duration}).
+  \item \textbf{Feature encoding}: embeddings for sparse/sequence features, and linear transforms for continuous features.
+  \item \textbf{Shared trunk}: a multi-layer perceptron (MLP) over the concatenated feature representation.
+  \item \textbf{Output heads}: predict mixture logits (converted to weights by softmax), the exponential rate \(\lambda\) (via softplus), and Gaussian parameters \(\mu,\sigma\) (also via softplus for positivity constraints in the implementation).
+\end{itemize}
+
+\subsection{Training objective (as implemented)}
+Training uses a combination of:
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Negative log-likelihood (NLL)} of the observed watch time under the mixture.
+  \item \textbf{Reconstruction regularizer}: an L1 loss between the observed label \(y\) and the model's mixture \emph{mean} prediction.
+  \item \textbf{Mixture entropy term}: computed from the mixture weights \(\pi\), weighted by a hyperparameter (\texttt{--alpha} in \texttt{run\_egmn.py}).
+\end{itemize}
+
+In the training script, the total loss is:
+\[
+\mathcal{L} = \mathcal{L}_{\mathrm{NLL}} + \alpha\,\mathcal{L}_{\mathrm{entropy}} + \beta\,\mathcal{L}_{\mathrm{reg}},
+\]
+with \(\alpha\) and \(\beta\) controlled by command-line flags.
+
+\subsection{Prediction used for evaluation}
+For evaluation, the code uses a \textbf{point prediction equal to the mixture mean}. In the implementation, the predicted value is computed as a weighted sum of component means (including the exponential mean \(1/\lambda\)).

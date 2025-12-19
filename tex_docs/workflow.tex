@@ -1,0 +1,32 @@
+\section{Workflow: dataset preprocessing and running experiments}
+
+\subsection{Dataset preprocessing (KuaiRec)}
+The KuaiRec raw data must be preprocessed before training. The provided script in \texttt{dataset/kuairec/kuairec\_process.py}:
+\begin{itemize}[leftmargin=*]
+  \item merges multiple KuaiRec feature CSVs into a single table,
+  \item builds vocabularies for sparse/sequence features,
+  \item constructs a feature \texttt{description} schema used by models and dataloaders,
+  \item splits into \texttt{train}/\texttt{test},
+  \item writes \texttt{kuairec\_data.pkl} containing the processed data and schema.
+\end{itemize}
+
+It also produces duration buckets and per-bucket play-time quantiles used by the D2Q baseline.
+
+\subsection{Training / evaluation entrypoints}
+Each method has a \texttt{run\_*.py} entrypoint. Typical usage is:
+\begin{itemize}[leftmargin=*]
+  \item \texttt{python run\_egmn.py --dataset\_name kuairec}
+  \item \texttt{python run\_cread.py --dataset\_name kuairec}
+  \item \texttt{python run\_d2q.py --dataset\_name kuairec}
+\end{itemize}
+
+These scripts:
+\begin{itemize}[leftmargin=*]
+  \item load \texttt{./dataset/kuairec/kuairec\_data.pkl} through \texttt{dataloader/kuairec.py},
+  \item train for a fixed number of epochs,
+  \item evaluate on the test set,
+  \item print MAE, XAUC, and KL divergence.
+\end{itemize}
+
+\subsection{Dependencies}
+The README indicates the project was tested with Python 3.x and PyTorch (e.g. 2.1.0), and expects common scientific Python packages (NumPy, pandas, scikit-learn).
