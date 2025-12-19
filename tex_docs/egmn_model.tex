@@ -9,6 +9,13 @@ EGMN uses a mixture with:
   \item \textbf{Multiple Gaussian components} (to capture longer watch time). In the code, the Gaussian components are implemented as \textbf{Normals truncated at 0} (to avoid negative time).
 \end{itemize}
 
+\subsection{Architecture diagram}
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\textwidth]{figures/egmn_arch.png}
+  \caption{EGMN architecture overview: feature encoders + shared MLP + mixture-parameter heads, producing a distribution and a mean prediction.}
+\end{figure}
+
 If we denote the mixture weights by \(\pi\), exponential rate by \(\lambda\), and Gaussian parameters \((\mu_k, \sigma_k)\), the model defines a mixture density over watch time \(y\ge 0\) of the form:
 \[
  p(y) = \pi_0\,\mathrm{Exp}(y;\lambda) + \sum_{k=1}^{K} \pi_k\,\mathrm{TN}(y;\mu_k,\sigma_k,\text{lower}=0),
