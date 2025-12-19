@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2025.12.19)  19 DEC 2025 06:08
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2025.12.19)  19 DEC 2025 06:11
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -358,7 +358,7 @@ Package: enumitem 2019/06/20 v3.9 Customized lists
 \enit@count@id=\count300
 \enitdp@description=\count301
 )
-LaTeX Font Info:    Trying to load font information for T1+lmr on input line 25
+LaTeX Font Info:    Trying to load font information for T1+lmr on input line 39
 .
 
 (/usr/share/texmf/tex/latex/lm/t1lmr.fd
@@ -369,27 +369,28 @@ File: l3backend-pdftex.def 2024-01-04 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count302
 \l__pdf_internal_box=\box56
 )
-No file ranking_retrieval_outputs.aux.
+(./ranking_retrieval_outputs.aux)
 \openout1 = `ranking_retrieval_outputs.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 25.
-LaTeX Font Info:    ... okay on input line 25.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 25.
-LaTeX Font Info:    ... okay on input line 25.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 25.
-LaTeX Font Info:    ... okay on input line 25.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 25.
-LaTeX Font Info:    ... okay on input line 25.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 25.
-LaTeX Font Info:    ... okay on input line 25.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 25.
-LaTeX Font Info:    ... okay on input line 25.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 25.
-LaTeX Font Info:    ... okay on input line 25.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 25.
-LaTeX Font Info:    ... okay on input line 25.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 25.
-LaTeX Font Info:    ... okay on input line 25.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 39.
+LaTeX Font Info:    ... okay on input line 39.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 39.
+LaTeX Font Info:    ... okay on input line 39.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 39.
+LaTeX Font Info:    ... okay on input line 39.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 39.
+LaTeX Font Info:    ... okay on input line 39.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 39.
+LaTeX Font Info:    ... okay on input line 39.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 39.
+LaTeX Font Info:    ... okay on input line 39.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 39.
+LaTeX Font Info:    ... okay on input line 39.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 39.
+LaTeX Font Info:    ... okay on input line 39.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 39.
+LaTeX Font Info:    ... okay on input line 39.
+
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
 *geometry* verbose mode - [ preamble ] result:
@@ -424,11 +425,13 @@ LaTeX Font Info:    ... okay on input line 25.
 * \@reversemarginfalse
 * (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
-Package hyperref Info: Link coloring OFF on input line 25.
+Package hyperref Info: Link coloring OFF on input line 39.
+(./ranking_retrieval_outputs.out) (./ranking_retrieval_outputs.out)
 \@outlinefile=\write3
 \openout3 = `ranking_retrieval_outputs.out'.
 
 \c@lstlisting=\count303
+
 (./ranking_retrieval_outputs.tex
 LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 7
 .
@@ -498,34 +501,27 @@ LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <10.95> not available
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-01-22>
  ***********
-
-
-Package rerunfilecheck Warning: File `ranking_retrieval_outputs.out' has change
-d.
-(rerunfilecheck)                Rerun to get outlines right
-(rerunfilecheck)                or use package `bookmark'.
-
-Package rerunfilecheck Info: Checksums for `ranking_retrieval_outputs.out':
-(rerunfilecheck)             Before: <no file>
-(rerunfilecheck)             After:  1D79ECCBB11C9D765586BF283A8380A9;1558.
+Package rerunfilecheck Info: File `ranking_retrieval_outputs.out' has not chang
+ed.
+(rerunfilecheck)             Checksum: 1D79ECCBB11C9D765586BF283A8380A9;1558.
  ) 
 Here is how much of TeX's memory you used:
- 11886 strings out of 476182
- 177462 string characters out of 5795594
+ 11903 strings out of 476182
+ 177849 string characters out of 5795594
  2057975 words of memory out of 5000000
- 33715 multiletter control sequences out of 15000+600000
+ 33726 multiletter control sequences out of 15000+600000
  591331 words of font info for 66 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 79i,5n,82p,501b,1339s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 79i,5n,82p,519b,1339s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texmf/fonts/type1/public/lm/lmbx10.pfb></usr/share/texmf/fonts/ty
 pe1/public/lm/lmbx12.pfb></usr/share/texmf/fonts/type1/public/lm/lmmi10.pfb></u
 sr/share/texmf/fonts/type1/public/lm/lmr10.pfb></usr/share/texmf/fonts/type1/pu
 blic/lm/lmtk10.pfb></usr/share/texmf/fonts/type1/public/lm/lmtt10.pfb></usr/sha
 re/texmf/fonts/type1/public/lm/lmtti10.pfb>
-Output written on ranking_retrieval_outputs.pdf (2 pages, 175109 bytes).
+Output written on ranking_retrieval_outputs.pdf (2 pages, 175692 bytes).
 PDF statistics:
- 97 PDF objects out of 1000 (max. 8388607)
- 77 compressed objects within 1 object stream
+ 119 PDF objects out of 1000 (max. 8388607)
+ 99 compressed objects within 1 object stream
  36 named destinations out of 1000 (max. 500000)
- 1 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 57 words of extra memory for PDF output out of 10000 (max. 10000000)
 

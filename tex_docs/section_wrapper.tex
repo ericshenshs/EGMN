@@ -1,3 +1,20 @@
+% This file is both:
+% - safe to \input from main.tex (it will do nothing), and
+% - usable as a standalone wrapper to compile an individual section file.
+%
+% Standalone usage example:
+%   pdflatex -jobname=repo_overview "\def\sectionfile{repo_overview.tex}\input{section_wrapper.tex}"
+%
+\makeatletter
+\@ifundefined{sectionfile}{\def\sectionfile{}}{}
+\edef\SectionFileTmp{\sectionfile}
+\ifx\SectionFileTmp\@empty
+  % No-op when included from main.tex
+  \makeatother
+  \endinput
+\fi
+\makeatother
+
 \documentclass[11pt]{article}
 \usepackage[margin=1in]{geometry}
 \usepackage[T1]{fontenc}
@@ -18,10 +35,7 @@
   tabsize=2
 }
 
-% Usage: compile with something like
-% pdflatex -jobname=repo_overview "\\def\\sectionfile{repo_overview.tex}\\input{section_wrapper.tex}"
 \newcommand{\SectionFile}{\sectionfile}
-
 \begin{document}
 \input{\SectionFile}
 \end{document}

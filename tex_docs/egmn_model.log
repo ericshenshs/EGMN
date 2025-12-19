@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2025.12.19)  19 DEC 2025 06:08
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2025.12.19)  19 DEC 2025 06:11
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -358,7 +358,7 @@ Package: enumitem 2019/06/20 v3.9 Customized lists
 \enit@count@id=\count300
 \enitdp@description=\count301
 )
-LaTeX Font Info:    Trying to load font information for T1+lmr on input line 25
+LaTeX Font Info:    Trying to load font information for T1+lmr on input line 39
 .
 
 (/usr/share/texmf/tex/latex/lm/t1lmr.fd
@@ -372,24 +372,24 @@ File: l3backend-pdftex.def 2024-01-04 L3 backend support: PDF output (pdfTeX)
 (./egmn_model.aux)
 \openout1 = `egmn_model.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 25.
-LaTeX Font Info:    ... okay on input line 25.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 25.
-LaTeX Font Info:    ... okay on input line 25.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 25.
-LaTeX Font Info:    ... okay on input line 25.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 25.
-LaTeX Font Info:    ... okay on input line 25.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 25.
-LaTeX Font Info:    ... okay on input line 25.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 25.
-LaTeX Font Info:    ... okay on input line 25.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 25.
-LaTeX Font Info:    ... okay on input line 25.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 25.
-LaTeX Font Info:    ... okay on input line 25.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 25.
-LaTeX Font Info:    ... okay on input line 25.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 39.
+LaTeX Font Info:    ... okay on input line 39.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 39.
+LaTeX Font Info:    ... okay on input line 39.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 39.
+LaTeX Font Info:    ... okay on input line 39.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 39.
+LaTeX Font Info:    ... okay on input line 39.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 39.
+LaTeX Font Info:    ... okay on input line 39.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 39.
+LaTeX Font Info:    ... okay on input line 39.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 39.
+LaTeX Font Info:    ... okay on input line 39.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 39.
+LaTeX Font Info:    ... okay on input line 39.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 39.
+LaTeX Font Info:    ... okay on input line 39.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -425,7 +425,7 @@ LaTeX Font Info:    ... okay on input line 25.
 * \@reversemarginfalse
 * (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
-Package hyperref Info: Link coloring OFF on input line 25.
+Package hyperref Info: Link coloring OFF on input line 39.
 (./egmn_model.out) (./egmn_model.out)
 \@outlinefile=\write3
 \openout3 = `egmn_model.out'.
@@ -506,10 +506,10 @@ Package rerunfilecheck Info: File `egmn_model.out' has not changed.
 (rerunfilecheck)             Checksum: 607EBA79772BA38153988FD3AF309BA2;1500.
  ) 
 Here is how much of TeX's memory you used:
- 11902 strings out of 476182
- 177547 string characters out of 5795594
+ 11903 strings out of 476182
+ 177561 string characters out of 5795594
  2064975 words of memory out of 5000000
- 33726 multiletter control sequences out of 15000+600000
+ 33727 multiletter control sequences out of 15000+600000
  601256 words of font info for 68 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
  79i,5n,82p,486b,1327s stack positions out of 10000i,1000n,20000p,200000b,200000s

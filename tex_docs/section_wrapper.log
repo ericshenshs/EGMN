@@ -2,7 +2,7 @@ This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloade
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
-**\def\sectionfile{optimization.tex}\input{section_wrapper.tex}
+**\def\sectionfile{repo_overview.tex}\input{section_wrapper.tex}
 (./section_wrapper.tex
 (/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
 Document Class: article 2023/05/17 v1.4n Standard LaTeX document class
@@ -369,8 +369,8 @@ File: l3backend-pdftex.def 2024-01-04 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count302
 \l__pdf_internal_box=\box56
 )
-(./optimization.aux)
-\openout1 = `optimization.aux'.
+(./section_wrapper.aux)
+\openout1 = `section_wrapper.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 39.
 LaTeX Font Info:    ... okay on input line 39.
@@ -426,109 +426,68 @@ LaTeX Font Info:    ... okay on input line 39.
 * (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
 Package hyperref Info: Link coloring OFF on input line 39.
-(./optimization.out) (./optimization.out)
+(./section_wrapper.out) (./section_wrapper.out)
 \@outlinefile=\write3
-\openout3 = `optimization.out'.
+\openout3 = `section_wrapper.out'.
 
 \c@lstlisting=\count303
- (./optimization.tex
-Overfull \hbox (0.88159pt too wide) in paragraph at lines 3--4
-\T1/lmr/m/n/10.95 This sec-tion ex-plains (at a prac-ti-cal im-ple-men-ta-tion 
-level) what pa-ram-e-ters are up-dated by gradient-
+ (./repo_overview.tex
+Overfull \hbox (18.61095pt too wide) in paragraph at lines 6--7
+[]\T1/lmr/m/it/10.95 ``Multi-Granularity Dis-tri-bu-tion Mod-el-ing for Video W
+atch Time Pre-dic-tion via Exponential-
  []
 
-LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 6
-.
-(/usr/share/texmf/tex/latex/lm/t1lmtt.fd
-File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
-)
-LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 7
-.
-
+LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 1
+2.
 (/usr/share/texmf/tex/latex/lm/ts1lmr.fd
 File: ts1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
-LaTeX Font Info:    Trying to load font information for OT1+lmr on input line 1
+LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 1
 3.
 
-(/usr/share/texmf/tex/latex/lm/ot1lmr.fd
-File: ot1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
+(/usr/share/texmf/tex/latex/lm/t1lmtt.fd
+File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
-LaTeX Font Info:    Trying to load font information for OML+lmm on input line 1
-3.
-
-(/usr/share/texmf/tex/latex/lm/omllmm.fd
-File: omllmm.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
+(/usr/share/texlive/texmf-dist/tex/latex/listings/lstlang1.sty
+File: lstlang1.sty 2023/02/27 1.9 listings language file
 )
-LaTeX Font Info:    Trying to load font information for OMS+lmsy on input line 
-13.
-
-(/usr/share/texmf/tex/latex/lm/omslmsy.fd
-File: omslmsy.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
-)
-LaTeX Font Info:    Trying to load font information for OMX+lmex on input line 
-13.
-
-(/usr/share/texmf/tex/latex/lm/omxlmex.fd
-File: omxlmex.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
-)
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10.95> on input line 13.
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <8> on input line 13.
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <6> on input line 13.
-LaTeX Font Info:    Trying to load font information for U+msa on input line 13.
-
-
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd
-File: umsa.fd 2013/01/14 v3.01 AMS symbols A
-)
-LaTeX Font Info:    Trying to load font information for U+msb on input line 13.
-
-
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd
-File: umsb.fd 2013/01/14 v3.01 AMS symbols B
+(/usr/share/texlive/texmf-dist/tex/latex/listings/lstlang1.sty
+File: lstlang1.sty 2023/02/27 1.9 listings language file
 )
 (/usr/share/texlive/texmf-dist/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2023/02/27 1.9 listings language file
 )
 LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <10> not available
-(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 46.
+(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 35.
  [1
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}{/usr/share/texmf/fonts/enc/
-dvips/lm/lm-ec.enc}{/usr/share/texmf/fonts/enc/dvips/lm/lm-ts1.enc}{/usr/share/
-texmf/fonts/enc/dvips/lm/lm-mathit.enc}{/usr/share/texmf/fonts/enc/dvips/lm/lm-
-mathsy.enc}{/usr/share/texmf/fonts/enc/dvips/lm/lm-rm.enc}]) [2] (./optimizatio
-n.aux)
+dvips/lm/lm-ec.enc}{/usr/share/texmf/fonts/enc/dvips/lm/lm-ts1.enc}]) [2]
+(./section_wrapper.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-01-22>
  ***********
-Package rerunfilecheck Info: File `optimization.out' has not changed.
-(rerunfilecheck)             Checksum: D1567593C2FD23FC670A999CA71F932E;1826.
+Package rerunfilecheck Info: File `section_wrapper.out' has not changed.
+(rerunfilecheck)             Checksum: 5485CC5291C610A8385A6DFA6C4A7810;625.
  ) 
 Here is how much of TeX's memory you used:
- 11923 strings out of 476182
- 177870 string characters out of 5795594
- 2179975 words of memory out of 5000000
- 33736 multiletter control sequences out of 15000+600000
- 598266 words of font info for 67 fonts, out of 8000000 for 9000
+ 11880 strings out of 476182
+ 176466 string characters out of 5795594
+ 2167975 words of memory out of 5000000
+ 33730 multiletter control sequences out of 15000+600000
+ 586010 words of font info for 51 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 79i,6n,82p,488b,2166s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 79i,6n,82p,489b,1316s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texmf/fonts/type1/public/lm/lmbx10.pfb></usr/share/texmf/fonts/ty
-pe1/public/lm/lmbx12.pfb></usr/share/texmf/fonts/type1/public/lm/lmmi10.pfb></u
-sr/share/texmf/fonts/type1/public/lm/lmmi8.pfb></usr/share/texmf/fonts/type1/pu
-blic/lm/lmr10.pfb></usr/share/texmf/fonts/type1/public/lm/lmr8.pfb></usr/share/
-texmf/fonts/type1/public/lm/lmri10.pfb></usr/share/texmf/fonts/type1/public/lm/
-lmsy10.pfb></usr/share/texmf/fonts/type1/public/lm/lmtk10.pfb></usr/share/texmf
-/fonts/type1/public/lm/lmtt10.pfb></usr/share/texmf/fonts/type1/public/lm/lmtti
-10.pfb>
-Output written on optimization.pdf (2 pages, 213171 bytes).
+pe1/public/lm/lmbx12.pfb></usr/share/texmf/fonts/type1/public/lm/lmr10.pfb></us
+r/share/texmf/fonts/type1/public/lm/lmri10.pfb></usr/share/texmf/fonts/type1/pu
+blic/lm/lmtk10.pfb></usr/share/texmf/fonts/type1/public/lm/lmtt10.pfb></usr/sha
+re/texmf/fonts/type1/public/lm/lmtti10.pfb>
+Output written on section_wrapper.pdf (2 pages, 180800 bytes).
 PDF statistics:
- 156 PDF objects out of 1000 (max. 8388607)
- 126 compressed objects within 2 object streams
- 43 named destinations out of 1000 (max. 500000)
- 57 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 110 PDF objects out of 1000 (max. 8388607)
+ 90 compressed objects within 1 object stream
+ 36 named destinations out of 1000 (max. 500000)
+ 33 words of extra memory for PDF output out of 10000 (max. 10000000)
 
