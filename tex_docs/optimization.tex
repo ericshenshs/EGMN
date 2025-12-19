@@ -1,0 +1,85 @@
+\section{What does gradient descent update in this model?}
+
+This section explains (at a practical implementation level) what parameters are updated by gradient-based optimization when training the models in this repository, focusing on the proposed \textbf{EGMN}.
+
+\subsection{What parameters are learnable?}
+In PyTorch, \textbf{gradient descent updates all tensors registered as parameters} (i.e. returned by \lstinline|model.parameters()|). Concretely for EGMN, these include:
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Embedding tables} for sparse and sequence features.
+  \item \textbf{Linear layers} for continuous features (e.g. \lstinline|duration| projection).
+  \item \textbf{Shared MLP (trunk)} weights and biases.
+  \item \textbf{Output heads} predicting the mixture parameters:
+  \begin{itemize}[leftmargin=*]
+    \item mixture logits \(\pi\) (pre-softmax),
+    \item exponential rate \(\lambda\) (via softplus),
+    \item Gaussian parameters \(\mu\) and \(\sigma\) (via softplus in the implementation).
+  \end{itemize}
+\end{itemize}
+
+\subsection{What is the objective being minimized?}
+During training, gradients are computed for a scalar loss. For EGMN, the training script forms:
+\[
+\mathcal{L} = \mathcal{L}_{\mathrm{NLL}} + \alpha\,\mathcal{L}_{\mathrm{entropy}} + \beta\,\mathcal{L}_{\mathrm{reg}}.
+\]
+
+\begin{itemize}[leftmargin=*]
+  \item \(\mathcal{L}_{\mathrm{NLL}}\): negative log-likelihood of the observed watch time under the mixture distribution.
+  \item \(\mathcal{L}_{\mathrm{reg}}\): reconstruction-style regularizer (L1 loss) between the observed label and the mixture-mean prediction.
+  \item \(\mathcal{L}_{\mathrm{entropy}}\): a mixture entropy term computed from the mixture weights (controls component usage), weighted by \(\alpha\).
+\end{itemize}
+
+\subsection{What does ``gradient descent'' do here?}
+At each iteration, PyTorch computes gradients \(\nabla_\theta \mathcal{L}\) for all learnable parameters \(\theta\). The optimizer (e.g. Adagrad/Adam) then applies an update of the form:
+\[
+\theta \leftarrow \theta - \eta\, \Delta(\nabla_\theta \mathcal{L}),
+\]
+where \(\eta\) is the learning rate and \(\Delta(\cdot)\) depends on the optimizer (e.g. per-parameter adaptive scaling).
+
+\subsection{Code example: the update step in training}
+The training scripts in this repo follow the standard PyTorch pattern:
+
+\begin{lstlisting}[language=Python]
+# run_egmn.py / run_*.py (illustrative)
+optimizer = torch.optim.Adagrad(model.parameters(), lr=args.lr,
+                                weight_decay=args.weight_decay)
+
+for features, label in dataloaders["train"]:
+    # Forward: compute distribution parameters
+    pi, lambda_, mu, sigma = model(features)
+
+    # Loss: compute scalar objective
+    nll, reg, ent = model.loss(label.float(), pi, lambda_, mu, sigma,
+                               features["duration"].view(-1, 1))
+    loss = nll + args.alpha * ent + args.beta * reg
+
+    # Backward: accumulate gradients d(loss)/d(theta)
+    optimizer.zero_grad()
+    loss.backward()
+
+    # Update: apply optimizer rule to parameters theta
+    optimizer.step()
+\end{lstlisting}
+
+\subsection{How gradients flow to mixture parameters}
+Even though EGMN conceptually outputs \(\pi\), \(\lambda\), \(\mu\), \(\sigma\), these are \emph{not} parameters themselves; they are \textbf{functions of the network weights}. Gradients flow from the loss through these outputs back into the head layers and the shared trunk.
+
+\begin{lstlisting}[language=Python]
+# model/egmn.py (illustrative)
+# pi is produced by a linear layer and normalized via softmax
++pi = self.mixture_logits(hidden)         # logits
++mix_probs = torch.softmax(pi, dim=1)     # weights
+
+# lambda, mu, sigma are produced by heads with softplus constraints
++lambda_ = self.lambda_layer(hidden) + 1e-6
++mu = self.gauss_mu(hidden) + 1 / lambda_
++sigma = self.gauss_sigma(hidden) + 1e-6
+
+# The NLL depends on (mix_probs, lambda_, mu, sigma),
+# so gradients propagate into all head/trunk parameters.
+\end{lstlisting}
+
+\subsection{Which parts are (not) updated?}
+\begin{itemize}[leftmargin=*]
+  \item Updated: any parameters owned by the model modules passed to the optimizer.
+  \item Not updated: input tensors (features/labels), data preprocessing artifacts (e.g. bucket boundaries / quantile tables), and any values created under \lstinline|torch.no_grad()|.
+\end{itemize}
