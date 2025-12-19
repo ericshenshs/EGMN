@@ -17,6 +17,43 @@ The repository also includes several baseline models and code to preprocess the 
   \item \lstinline|utils.py|: Evaluation metrics (MAE, XAUC, KL divergence) and helper utilities.
 \end{itemize}
 
+\subsection{Code examples}
+\paragraph{Typical entrypoint invocation}
+\begin{lstlisting}[language=bash]
+# Train + evaluate the proposed EGMN model on KuaiRec
+python run_egmn.py --dataset_name kuairec --device cuda:0
+
+# Baselines (examples)
+python run_cread.py --dataset_name kuairec
+python run_d2q.py --dataset_name kuairec
+\end{lstlisting}
+
+\paragraph{What the dataloader yields}
+The KuaiRec dataloader returns a tuple \lstinline|(features_dict, label)|, where \lstinline|features_dict| contains tensors keyed by feature name (e.g. \lstinline|duration|, categorical IDs, and sequence masks).
+\begin{lstlisting}[language=Python]
+# Pseudocode reflecting dataloader/kuairec.py
+for features, label in dataloaders["train"]:
+    # features is a dict of tensors, label is the normalized play_time
+    y_hat = model.predict(features)
+\end{lstlisting}
+
+\paragraph{Metrics used in evaluation}
+\begin{lstlisting}[language=Python]
+# utils.py (simplified)
+def eval_mae(labels, scores):
+    return np.mean(np.abs(labels - scores))
+
+def eval_xauc(labels, preds):
+    # ranks by prediction, then measures label ordering agreement
+    ...
+
+def eval_kl(samples_p, samples_q, bins=100, epsilon=1e-10):
+    hist_p, bin_edges = np.histogram(samples_p, bins=bins, density=True)
+    hist_q, _ = np.histogram(samples_q, bins=bin_edges, density=True)
+    ...
+    return np.sum(hist_p * np.log(hist_p / hist_q))
+\end{lstlisting}
+
 \subsection{Evaluation outputs}
 The run scripts train on \lstinline|train| and evaluate on \lstinline|test|, printing (at least):
 \begin{itemize}[leftmargin=*]

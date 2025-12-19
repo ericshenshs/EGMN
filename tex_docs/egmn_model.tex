@@ -23,6 +23,20 @@ where \(\mathrm{TN}(\cdot)\) is a Normal distribution truncated below at 0.
   \item \textbf{Output heads}: predict mixture logits (converted to weights by softmax), the exponential rate \(\lambda\) (via softplus), and Gaussian parameters \(\mu,\sigma\) (also via softplus for positivity constraints in the implementation).
 \end{itemize}
 
+\subsection{Code snippet: heads and parameterization}
+\begin{lstlisting}[language=Python]
+# model/egmn.py (illustrative excerpt)
+self.lambda_layer = nn.Sequential(
+    nn.Linear(hidden_dim, 1),
+    nn.Softplus(beta=0.5),
+)
+
+comp_num = 10  # number of Gaussian components
+self.mixture_logits = nn.Linear(hidden_dim, comp_num + 1)  # +1 for Exponential
+self.gauss_mu = nn.Sequential(nn.Linear(hidden_dim, comp_num), nn.Softplus())
+self.gauss_sigma = nn.Sequential(nn.Linear(hidden_dim, comp_num), nn.Softplus())
+\end{lstlisting}
+
 \subsection{Training objective (as implemented)}
 Training uses a combination of:
 \begin{itemize}[leftmargin=*]
@@ -39,3 +53,14 @@ with \(\alpha\) and \(\beta\) controlled by command-line flags.
 
 \subsection{Prediction used for evaluation}
 For evaluation, the code uses a \textbf{point prediction equal to the mixture mean}. In the implementation, the predicted value is computed as a weighted sum of component means (including the exponential mean \(1/\lambda\)).
+
+\subsection{Code snippet: prediction as mixture mean}
+\begin{lstlisting}[language=Python]
+# model/egmn.py (illustrative excerpt)
+pi, lambda_, mu, sigma = self.forward(features)
+pi = torch.softmax(pi, dim=1)
+
+# component means: Exponential mean is 1/lambda; Gaussians use mu
+component_means = torch.concat([1 / lambda_, mu], dim=1)
+pred = torch.sum(pi * component_means, dim=1)
+\end{lstlisting}

@@ -12,6 +12,25 @@ The KuaiRec raw data must be preprocessed before training. The provided script i
 
 It also produces duration buckets and per-bucket play-time quantiles used by the D2Q baseline.
 
+\subsection{Code snippet: preprocessing outputs (D2Q support)}
+\begin{lstlisting}[language=Python]
+# dataset/kuairec/kuairec_process.py (illustrative excerpt)
+n_bins = 50
+df["duration_bucket"], bins = pd.qcut(df["duration"], q=n_bins, labels=False,
+                                      retbins=True, duplicates="drop")
+desc.append(("duration_bucket", len(bins) - 1, "spr"))
+
+# Per-bucket play-time quantiles for D2Q mapping
+quantile_num = 100
+quantiles = np.linspace(0, 1, quantile_num + 1)
+quantile_df = (df_train.groupby("duration_bucket")["play_time"]
+               .quantile(quantiles).reset_index())
+quantile_df.pivot(index="duration_bucket", columns="quantile",
+                  values="play_time").to_csv(
+    "d2q_duration_bucket_playtime_quantiles.csv"
+)
+\end{lstlisting}
+
 \subsection{Training / evaluation entrypoints}
 Each method has a \lstinline|run_*.py| entrypoint. Typical usage is:
 \begin{itemize}[leftmargin=*]
@@ -27,6 +46,20 @@ These scripts:
   \item evaluate on the test set,
   \item print MAE, XAUC, and KL divergence.
 \end{itemize}
+
+\subsection{Code snippet: EGMN training loop structure}
+\begin{lstlisting}[language=Python]
+# run_egmn.py (illustrative excerpt)
+for epoch in range(1, args.epoch + 1):
+    for features, label in dataloaders["train"]:
+        pi, lambda_, mu, sigma = model(features)
+        nll, reg, ent = model.loss(label.float(), pi, lambda_, mu, sigma,
+                                   features["duration"].view(-1, 1))
+        loss = nll + args.alpha * ent + args.beta * reg
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+\end{lstlisting}
 
 \subsection{Dependencies}
 The README indicates the project was tested with Python 3.x and PyTorch (e.g. 2.1.0), and expects common scientific Python packages (NumPy, pandas, scikit-learn).
