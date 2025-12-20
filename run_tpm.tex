@@ -1,0 +1,97 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{fancyvrb}
+\usepackage{listings}
+\usepackage{CJKutf8}
+\lstset{basicstyle=\ttfamily\small,columns=fullflexible,breaklines=true,upquote=true,frame=single,framerule=0.2pt,tabsize=2}
+
+\title{\texttt{\detokenize{run_tpm.py}} (Q\&A Documentation)}
+\author{}
+\date{}
+\begin{document}
+\begin{CJK*}{UTF8}{gbsn}
+\maketitle
+
+\paragraph{Q: What does this run script control?}
+\textbf{A:} It controls the full experiment loop: args, data loading, model instantiation, training with a specific loss/optimizer, and evaluation with shared metrics.
+
+\paragraph{Q: Why is the model not responsible for training/evaluation?}
+\textbf{A:} Keeping training logic in the script makes it easy to compare models under the same protocol and avoids mixing I/O/metrics with differentiable code.
+
+\paragraph{Q: What does this file export (public API)?}
+\textbf{A:} The public API is the set of classes/functions other modules import (sometimes re-exported by package initializers). The key top-level definitions detected here are:
+
+\begin{Verbatim}[fontsize=\small]
+def get_args(...)  # function
+def get_loaders(...)  # function
+def mae_rescale_to_second(...)  # function
+def test(...)  # function
+\end{Verbatim}
+
+\paragraph{Q: What are the main dependencies (imports) and why do they matter?}
+\textbf{A:} Imports show whether this file is model code (torch), data code (pandas), or evaluation/analysis (sklearn). They also determine runtime requirements.
+
+\vspace{1mm}
+\VerbatimInput[firstline=1,lastline=50,fontsize=\small]{/workspace/run_tpm.py}
+
+
+\paragraph{Q: What is \texttt{\detokenize{get_args}} and what responsibility does it have?}
+\textbf{A:} This function is a core unit in the pipeline. Its responsibility is inferred from its name and how run scripts call it.
+
+\paragraph{Q: What does the implementation look like for \texttt{\detokenize{get_args}}?}
+\textbf{A:} Excerpt from the file:
+
+\vspace{1mm}
+\VerbatimInput[firstline=12,lastline=29,fontsize=\scriptsize]{/workspace/run_tpm.py}
+
+
+\paragraph{Q: What is \texttt{\detokenize{get_loaders}} and what responsibility does it have?}
+\textbf{A:} This function is a core unit in the pipeline. Its responsibility is inferred from its name and how run scripts call it.
+
+\paragraph{Q: What does the implementation look like for \texttt{\detokenize{get_loaders}}?}
+\textbf{A:} Excerpt from the file:
+
+\vspace{1mm}
+\VerbatimInput[firstline=32,lastline=38,fontsize=\scriptsize]{/workspace/run_tpm.py}
+
+
+\paragraph{Q: What is \texttt{\detokenize{mae_rescale_to_second}} and what responsibility does it have?}
+\textbf{A:} This function is a core unit in the pipeline. Its responsibility is inferred from its name and how run scripts call it.
+
+\paragraph{Q: What does the implementation look like for \texttt{\detokenize{mae_rescale_to_second}}?}
+\textbf{A:} Excerpt from the file:
+
+\vspace{1mm}
+\VerbatimInput[firstline=40,lastline=48,fontsize=\scriptsize]{/workspace/run_tpm.py}
+
+
+\paragraph{Q: What is \texttt{\detokenize{test}} and what responsibility does it have?}
+\textbf{A:} This function is a core unit in the pipeline. Its responsibility is inferred from its name and how run scripts call it.
+
+\paragraph{Q: What does the implementation look like for \texttt{\detokenize{test}}?}
+\textbf{A:} Excerpt from the file:
+
+\vspace{1mm}
+\VerbatimInput[firstline=50,lastline=62,fontsize=\scriptsize]{/workspace/run_tpm.py}
+
+
+\paragraph{Q: Example: end-to-end data flow involving this file}
+\textbf{A:} Core pipeline shape (schematic):
+
+\begin{Verbatim}[fontsize=\small]
+python run_tpm.py --dataset_name kuairec --dataset_path ./dataset --device cuda:0
+# Internally: load dataloaders → build model → train → evaluate
+\end{Verbatim}
+
+\paragraph{Q: Full source code of the Python file}
+\textbf{A:} The complete file is included verbatim for reference.
+
+\VerbatimInput[fontsize=\scriptsize]{/workspace/run_tpm.py}
+
+\end{CJK*}
+\end{document}

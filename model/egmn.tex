@@ -1,0 +1,85 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{fancyvrb}
+\usepackage{listings}
+\usepackage{CJKutf8}
+\lstset{basicstyle=\ttfamily\small,columns=fullflexible,breaklines=true,upquote=true,frame=single,framerule=0.2pt,tabsize=2}
+
+\title{\texttt{\detokenize{model/egmn.py}} (Q\&A Documentation)}
+\author{}
+\date{}
+\begin{document}
+\begin{CJK*}{UTF8}{gbsn}
+\maketitle
+
+\paragraph{Q: What does this file implement at a high level?}
+\textbf{A:} This file implements EGMN: a mixture-distribution watch-time predictor. It encodes sparse/sequence/continuous features, produces mixture parameters (mixture logits, exponential rate, Gaussian means/variances), and provides both a likelihood-based loss and a scalar prediction via the mixture mean.
+
+\paragraph{Q: Why is a mixture distribution needed for watch-time?}
+\textbf{A:} Watch-time has a heavy spike near 0 (quick-skip) and a long tail. A single regression head struggles to represent both. The model uses an Exponential component for the spike and multiple (truncated) Gaussians to represent the tail/modes.
+
+\paragraph{Q: What are the model outputs and how are they used?}
+\textbf{A:} Forward returns (pi, lambda, mu, sigma). Training uses them in the negative log-likelihood and auxiliary terms; inference uses them to compute a scalar expectation (mixture mean) as the final predicted watch-time.
+
+\paragraph{Q: What does this file export (public API)?}
+\textbf{A:} The public API is the set of classes/functions other modules import (sometimes re-exported by package initializers). The key top-level definitions detected here are:
+
+\begin{Verbatim}[fontsize=\small]
+class EGMN  # methods: __init__, build, init, forward, loss, get_quantile, predict
+\end{Verbatim}
+
+\paragraph{Q: What are the main dependencies (imports) and why do they matter?}
+\textbf{A:} Imports show whether this file is model code (torch), data code (pandas), or evaluation/analysis (sklearn). They also determine runtime requirements.
+
+\vspace{1mm}
+\VerbatimInput[firstline=1,lastline=50,fontsize=\small]{/workspace/model/egmn.py}
+
+
+\paragraph{Q: What is \texttt{\detokenize{EGMN}} and what responsibility does it have?}
+\textbf{A:} This class is a core unit in the pipeline. Its responsibility is inferred from its name and how run scripts call it.
+
+\paragraph{Q: What are the important methods on \texttt{\detokenize{EGMN}}?}
+\textbf{A:} In this repo, methods like forward/loss/predict define computation and training targets. The methods found are:
+
+\begin{Verbatim}[fontsize=\small]
+__init__
+build
+init
+forward
+loss
+get_quantile
+predict
+\end{Verbatim}
+
+\paragraph{Q: What does the implementation look like for \texttt{\detokenize{EGMN}}?}
+\textbf{A:} Excerpt from the file:
+
+\vspace{1mm}
+\VerbatimInput[firstline=9,lastline=89,fontsize=\scriptsize]{/workspace/model/egmn.py}
+
+
+\paragraph{Q: Why is \texttt{\detokenize{EGMN}} needed by training scripts?}
+\textbf{A:} Training scripts assume this class can be instantiated from the dataset description and can map a feature dictionary to outputs required by that script's loss. This separation makes it easy to swap models while reusing the same dataloader and metrics.
+
+\paragraph{Q: Example: end-to-end data flow involving this file}
+\textbf{A:} Core pipeline shape (schematic):
+
+\begin{Verbatim}[fontsize=\small]
+for features, label in dataloaders["train"]:
+    out = model(features)
+    loss = ...
+    loss.backward(); optimizer.step()
+\end{Verbatim}
+
+\paragraph{Q: Full source code of the Python file}
+\textbf{A:} The complete file is included verbatim for reference.
+
+\VerbatimInput[fontsize=\scriptsize]{/workspace/model/egmn.py}
+
+\end{CJK*}
+\end{document}
