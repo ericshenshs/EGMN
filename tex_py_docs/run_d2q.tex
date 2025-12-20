@@ -1,0 +1,33 @@
+\documentclass[11pt]{article}
+\input{tex_preamble.sty}
+
+\title{\texttt{run\_d2q.py} (Q\&A)}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\paragraph{Q: What is the purpose of \texttt{run\_d2q.py}?}
+\textbf{A:} It trains and evaluates the D2Q baseline. The script loads precomputed per-duration-bucket play-time quantiles, trains a model to predict a normalized quantile position, then maps that prediction back to a watch-time value for evaluation.
+
+\paragraph{Q: What extra data does D2Q require beyond \lstinline|kuairec_data.pkl|?}
+\textbf{A:} It expects \lstinline|d2q_duration_bucket_playtime_quantiles.csv| (created by preprocessing) and loads it into a \lstinline|bucket_quantiles| dictionary, which defines how values map to and from quantile space within each duration bucket.
+
+\paragraph{Q: How are labels transformed for training?}
+\textbf{A:} Each label value is mapped into a bucket-specific quantile index using \lstinline|from_value_to_quantile|, then normalized into \([0,1]\) by \lstinline|label_norm| before computing an MSE loss against the model output.
+
+\paragraph{Q: How are predictions transformed for evaluation?}
+\textbf{A:} The model outputs a scalar quantile-like value; the script uses \lstinline|from_quantile_to_value| (bucket-specific interpolation) to map it back to an estimated watch-time value.
+
+\paragraph{Q: Code example: mapping predicted quantile back to value?}
+\textbf{A:}
+\begin{lstlisting}[language=Python]
+mapped_y_value = from_quantile_to_value(buckets_quantiles, idx.item(), quantile)
+\end{lstlisting}
+
+\paragraph{Q: Full source code?}
+\textbf{A:}
+\lstinputlisting[language=Python]{/workspace/run_d2q.py}
+
+\end{document}

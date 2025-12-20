@@ -1,0 +1,37 @@
+\documentclass[11pt]{article}
+\input{tex_preamble.sty}
+
+\title{\texttt{run\_vr.py} (Q\&A)}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\paragraph{Q: What is the purpose of \texttt{run\_vr.py}?}
+\textbf{A:} It trains and evaluates a Wide \& Deep regression baseline (named ``VR'' here) for watch-time prediction. The key distinctive behavior is that the script rescales labels and predictions by a constant factor during training/evaluation.
+
+\paragraph{Q: How does this script load data and create the model?}
+\textbf{A:} It loads \lstinline|{dataset_path}/{dataset_name}/{dataset_name}_data.pkl| via \lstinline|KUAIRECDataLoader| and constructs \lstinline|WideAndDeep| with a configurable MLP size and embedding dimension.
+
+\paragraph{Q: What is special about the label scaling in this file?}
+\textbf{A:} During training, it trains with MSE against \lstinline|20 * label|, and during evaluation it divides predictions by 20 (\lstinline|y = model(features) / 20|). This is a numerical scaling choice (it does not change the optimum under MSE if done consistently).
+
+\paragraph{Q: What metrics are printed at the end?}
+\textbf{A:} It computes MAE/XAUC/KL using \lstinline|utils.py| and rescales MAE to seconds for the configured dataset.
+
+\paragraph{Q: Code example: the scaling logic?}
+\textbf{A:}
+\begin{lstlisting}[language=Python]
+# train
+loss = criterion(y, 20 * label.float())
+
+# test
+y = model(features) / 20
+\end{lstlisting}
+
+\paragraph{Q: Full source code?}
+\textbf{A:}
+\lstinputlisting[language=Python]{/workspace/run_vr.py}
+
+\end{document}

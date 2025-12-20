@@ -1,0 +1,37 @@
+\documentclass[11pt]{article}
+\input{tex_preamble.sty}
+
+\title{\texttt{run\_d2co.py} (Q\&A)}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\paragraph{Q: What is the purpose of \texttt{run\_d2co.py}?}
+\textbf{A:} It trains and evaluates a Wide \& Deep model using a \textbf{GMM-based label transformation} conditioned on duration buckets. The script fits Gaussian Mixture Models per bucket to estimate two modes of play-time, maps labels into a bounded target space, trains with MSE, and maps predictions back to the original scale for evaluation.
+
+\paragraph{Q: What is the key idea behind the GMM label transformation here?}
+\textbf{A:} For each duration bucket, the script fits a 2-component Gaussian Mixture Model to play-time values, producing two means (interpreted as ``negative'' and ``positive'' modes). Labels are transformed using an exponential mapping (\lstinline|get_gmm_label|), and predictions are inverted back via \lstinline|get_real_value|.
+
+\paragraph{Q: How are GMM means computed and stabilized?}
+\textbf{A:} The function \lstinline|get_gmm_mean| iterates through buckets, fits a GMM for each, collects the sorted means, and then applies a frequency-weighted moving average smoothing (windowed rolling average) to reduce noise in sparse buckets.
+
+\paragraph{Q: What model is trained in this script?}
+\textbf{A:} It constructs \lstinline|WideAndDeep| (from \lstinline|model/wd.py|) and trains it with MSE against the transformed GMM label target.
+
+\paragraph{Q: How does evaluation work?}
+\textbf{A:} At test time, it uses the inverse transform to map the model's output back to a play-time value and then computes MAE/XAUC/KL (with dataset-specific MAE rescaling).
+
+\paragraph{Q: Code example: fitting per-bucket GMM means (schematic)?}
+\textbf{A:}
+\begin{lstlisting}[language=Python]
+gm = GaussianMixture(n_components=2, covariance_type="spherical", ...).fit(playTimeInBucket)
+means = np.sort(gm.means_.T[0])
+\end{lstlisting}
+
+\paragraph{Q: Full source code?}
+\textbf{A:}
+\lstinputlisting[language=Python]{/workspace/run_d2co.py}
+
+\end{document}

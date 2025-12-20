@@ -1,0 +1,37 @@
+\documentclass[11pt]{article}
+\input{../tex_preamble.sty}
+
+\title{\texttt{model/layers.py} (Q\&A)}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\paragraph{Q: What is the purpose of \texttt{model/layers.py}?}
+\textbf{A:} This file collects reusable neural network building blocks (feature embeddings, factorization machine interaction layers, several MLP variants, and a cross network) that are shared across multiple models in \lstinline|model/|.
+
+\paragraph{Q: What problem do \lstinline|FeaturesLinear| and \lstinline|FeaturesEmbedding| solve?}
+\textbf{A:} They implement the common ``field-wise categorical feature'' pattern: each field has a separate vocabulary size, and an \emph{offset} vector maps per-field IDs into a single shared embedding table. \lstinline|FeaturesLinear| returns a linear score; \lstinline|FeaturesEmbedding| returns dense embeddings.
+
+\paragraph{Q: What does \lstinline|FactorizationMachine| compute?}
+\textbf{A:} It computes the standard FM second-order interaction term: \(\\tfrac{1}{2}[(\\sum x)^2 - \\sum (x^2)]\) across fields, optionally summed across the embedding dimension to return a single interaction logit per example.
+
+\paragraph{Q: What MLP variants are provided and why?}
+\textbf{A:} \lstinline|MultiLayerPerceptron| is a standard ReLU MLP with BatchNorm and Dropout; \lstinline|MultiLayerPerceptronD2Q| uses a Swish nonlinearity; \lstinline|MultiLayerPerceptronTPM| outputs a vector of class logits for TPM; and \lstinline|DurationMultiLayerPerceptron| concatenates an extra continuous \lstinline|duration| feature at each layer.
+
+\paragraph{Q: What are the more specialized interaction layers?}
+\textbf{A:} \lstinline|AttentionalFactorizationMachine| computes pairwise field interactions and learns attention weights over them before projecting to a scalar, and \lstinline|CrossNetwork| implements DCN-style cross layers \(x_{l+1}=x_0 (w_l^\\top x_l) + b_l + x_l\).
+
+\paragraph{Q: Code example: FM interaction (schematic usage)?}
+\textbf{A:}
+\begin{lstlisting}[language=Python]
+fm = FactorizationMachine(reduce_sum=True)
+ix = fm(embeddings)  # embeddings: [batch, num_fields, embed_dim]
+\end{lstlisting}
+
+\paragraph{Q: Full source code?}
+\textbf{A:}
+\lstinputlisting[language=Python]{/workspace/model/layers.py}
+
+\end{document}

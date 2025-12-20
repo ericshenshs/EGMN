@@ -1,0 +1,37 @@
+\documentclass[11pt]{article}
+\input{../tex_preamble.sty}
+
+\title{\texttt{model/wd.py} (Q\&A)}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\paragraph{Q: What is the purpose of \texttt{model/wd.py}?}
+\textbf{A:} It implements a Wide \& Deep baseline model used for watch-time prediction. The architecture combines an MLP over embedded features (deep part) with optional linear contributions from continuous features (wide part).
+
+\paragraph{Q: What are the inputs and outputs of the model?}
+\textbf{A:} The model takes a feature dictionary \lstinline|x_dict| and outputs a sigmoid-activated scalar per example (in this repo, training scripts may rescale labels/predictions, e.g. multiplying labels by 20 in \lstinline|run_vr.py|).
+
+\paragraph{Q: How are features encoded?}
+\textbf{A:} Sparse and sequence features are embedded; sequence embeddings are pooled using a mask; continuous features contribute via a learned \lstinline|Linear(1,1)| per feature. The embedded features are concatenated and passed through an MLP.
+
+\paragraph{Q: How does the model combine wide and deep parts?}
+\textbf{A:} The deep output is the MLP output; if continuous linear terms exist, they are summed and added to the deep output before applying the final sigmoid.
+
+\paragraph{Q: Code example: the wide+deep combination?}
+\textbf{A:}
+\begin{lstlisting}[language=Python]
+res = self.mlp(emb)
+if len(linears) > 0:
+    linear_part = torch.concat(linears, dim=1).sum(dim=1, keepdims=True)
+    res += linear_part
+return torch.sigmoid(res.squeeze(1))
+\end{lstlisting}
+
+\paragraph{Q: Full source code?}
+\textbf{A:}
+\lstinputlisting[language=Python]{/workspace/model/wd.py}
+
+\end{document}

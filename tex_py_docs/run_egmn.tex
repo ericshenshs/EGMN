@@ -1,0 +1,37 @@
+\documentclass[11pt]{article}
+\input{tex_preamble.sty}
+
+\title{\texttt{run\_egmn.py} (Q\&A)}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\paragraph{Q: What is the purpose of \texttt{run\_egmn.py}?}
+\textbf{A:} It is the main training and evaluation entrypoint for the proposed EGMN model on a supported dataset (in this repo, KuaiRec). It parses CLI arguments, loads the preprocessed dataset through \lstinline|KUAIRECDataLoader|, trains EGMN, and prints MAE/XAUC/KL on the test set.
+
+\paragraph{Q: What command-line arguments are defined?}
+\textbf{A:} It defines dataset/device/batch-size options plus optimization and loss-weight hyperparameters, notably \lstinline|--alpha| (entropy loss weight) and \lstinline|--beta| (reconstruction L1 weight), as well as \lstinline|--lr|, \lstinline|--weight_decay|, and \lstinline|--epoch|.
+
+\paragraph{Q: How is the dataset loaded?}
+\textbf{A:} \lstinline|get_loaders| constructs the pickle path \lstinline|{dataset_path}/{dataset_name}/{dataset_name}_data.pkl| and returns a \lstinline|KUAIRECDataLoader| instance whose \lstinline|['train']| and \lstinline|['test']| keys provide PyTorch \lstinline|DataLoader|s.
+
+\paragraph{Q: What does the training loop do each step?}
+\textbf{A:} For each batch it calls \lstinline|model(features)| to obtain mixture parameters, computes \lstinline|nll_loss|, \lstinline|reg_loss|, and \lstinline|entropy_loss| via \lstinline|model.loss(...)|, forms the weighted sum objective, backpropagates, and steps an optimizer (Adagrad by default).
+
+\paragraph{Q: What is evaluated at test time?}
+\textbf{A:} \lstinline|test(...)| uses \lstinline|model.predict(features)| to produce a scalar watch-time estimate per example, then computes MAE/XAUC/KL via \lstinline|utils.py| and rescales MAE into seconds for the dataset.
+
+\paragraph{Q: Code example: the core training loss combination?}
+\textbf{A:}
+\begin{lstlisting}[language=Python]
+nll_loss, reg_loss, entropy_loss = model.loss(...)
+loss = nll_loss + args.alpha * entropy_loss + args.beta * reg_loss
+\end{lstlisting}
+
+\paragraph{Q: Full source code?}
+\textbf{A:}
+\lstinputlisting[language=Python]{/workspace/run_egmn.py}
+
+\end{document}

@@ -1,0 +1,36 @@
+\documentclass[11pt]{article}
+\input{tex_preamble.sty}
+
+\title{\texttt{run\_cread.py} (Q\&A)}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\paragraph{Q: What is the purpose of \texttt{run\_cread.py}?}
+\textbf{A:} It trains and evaluates the CREAD baseline on a supported dataset (KuaiRec in this repo). The script includes the discretization strategy (bucket split search), the loss terms used to train CREAD, and the reconstruction rule to turn bucket outputs into a scalar watch-time prediction.
+
+\paragraph{Q: What is special about CREAD compared to direct regression?}
+\textbf{A:} CREAD predicts a vector of probabilities over multiple discretized thresholds. The script discretizes the continuous label into multiple binary targets (\lstinline|discretize_time_label|), then reconstructs a scalar label estimate (\lstinline|restore_time_label|).
+
+\paragraph{Q: How are split nodes chosen?}
+\textbf{A:} The script performs a grid search over a parameter \lstinline|alpha| to compute quantile-based split nodes (\lstinline|get_split_nodes|) and selects the split configuration that minimizes a heuristic loss combining within- and between-bucket terms.
+
+\paragraph{Q: What losses are optimized during training?}
+\textbf{A:} The training objective is a weighted sum of (1) BCE between predicted bucket probabilities and discretized labels, (2) a Huber loss between reconstructed watch time and the original label, and (3) an ``ordinal'' penalty encouraging monotonicity across buckets (\lstinline|get_ord_criterion|).
+
+\paragraph{Q: How does evaluation work?}
+\textbf{A:} At test time, the model produces bucket probabilities and the script reconstructs a scalar watch-time prediction using the learned split nodes, then computes MAE/XAUC/KL and rescales MAE to seconds.
+
+\paragraph{Q: Code example: training loss composition?}
+\textbf{A:}
+\begin{lstlisting}[language=Python]
+loss = loss_bce + args.restore_w * loss_restore + args.ord_w * loss_ord
+\end{lstlisting}
+
+\paragraph{Q: Full source code?}
+\textbf{A:}
+\lstinputlisting[language=Python]{/workspace/run_cread.py}
+
+\end{document}

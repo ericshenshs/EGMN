@@ -1,0 +1,24 @@
+\documentclass[11pt]{article}
+\input{../tex_preamble.sty}
+
+\title{\texttt{model/\_\_init\_\_.py} (Q\&A)}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\paragraph{Q: What is the purpose of \texttt{model/\_\_init\_\_.py}?}
+\textbf{A:} It turns the \lstinline|model/| folder into an importable Python package and provides a single import surface that re-exports the main model classes used by the training scripts.
+
+\paragraph{Q: Which models are re-exported?}
+\textbf{A:} It re-exports \lstinline|WideAndDeep|, \lstinline|Cread|, \lstinline|D2Q|, \lstinline|TPM|, and \lstinline|EGMN| so scripts can write \lstinline|from model import EGMN| instead of importing individual modules.
+
+\paragraph{Q: Why does this pattern matter for the repo?}
+\textbf{A:} The run scripts under the repo root depend on stable, short imports; re-exporting classes here decouples script imports from the file layout (e.g. renaming \lstinline|model/egmn.py| would only require updating this file and not every run script).
+
+\paragraph{Q: Full source code?}
+\textbf{A:}
+\lstinputlisting[language=Python]{/workspace/model/__init__.py}
+
+\end{document}

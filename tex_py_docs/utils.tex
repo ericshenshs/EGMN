@@ -1,0 +1,38 @@
+\documentclass[11pt]{article}
+\input{tex_preamble.sty}
+
+\title{\texttt{utils.py} (Q\&A)}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\paragraph{Q: What is the purpose of \texttt{utils.py}?}
+\textbf{A:} This file provides shared evaluation metrics and helper routines used across multiple run scripts (notably MAE, XAUC, and KL divergence), plus utilities used by the TPM baseline for tree-style label encoding and decoding.
+
+\paragraph{Q: What are the core evaluation metrics implemented here?}
+\textbf{A:} The main metrics are \lstinline|eval_mae| (mean absolute error), \lstinline|eval_xauc| (a ranking-style agreement metric based on ordering induced by predictions), and \lstinline|eval_kl| (KL divergence between binned empirical distributions of labels vs. predictions).
+
+\paragraph{Q: How does XAUC work at a high level in this implementation?}
+\textbf{A:} The code sorts (label, prediction) pairs by prediction descending, then counts how many label inversions occur in that sorted list (using \lstinline|InversePairsCalc|). XAUC is computed as inversions divided by the total number of pairs, effectively measuring whether larger predictions correspond to larger labels.
+
+\paragraph{Q: What TPM-specific utilities are implemented here?}
+\textbf{A:} The TPM pipeline requires (1) building percentile bucket boundaries (\lstinline|get_playtime_percentiles_range|), (2) encoding labels into a binary tree of interval decisions (\lstinline|get_tree_encoded_label|), (3) decoding model outputs back to a scalar value and an uncertainty-like term (\lstinline|get_tree_encoded_value|), and (4) computing a weighted tree classification loss (\lstinline|get_tree_classify_loss|).
+
+\paragraph{Q: What are the key code entrypoints a reader should look at first?}
+\textbf{A:} If you are focused on evaluation: \lstinline|eval_mae|, \lstinline|eval_xauc|, and \lstinline|eval_kl|. If you are focused on TPM: \lstinline|get_playtime_percentiles_range|, \lstinline|get_tree_encoded_label|, \lstinline|get_tree_encoded_value|, and \lstinline|get_tree_classify_loss|.
+
+\paragraph{Q: Code example: how a run script typically uses these metrics?}
+\textbf{A:}
+\begin{lstlisting}[language=Python]
+mae = eval_mae(labels, scores)
+xauc = eval_xauc(labels, scores)
+kl = eval_kl(labels, scores)
+\end{lstlisting}
+
+\paragraph{Q: Full source code?}
+\textbf{A:}
+\lstinputlisting[language=Python]{/workspace/utils.py}
+
+\end{document}
