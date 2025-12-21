@@ -11,6 +11,26 @@ import torch
 import numpy as np
  
 def get_playtime_percentiles_range(dataloader, wr_bucknum, _device):
+    """get_playtime_percentiles_range.
+    
+    TPM helper: encodes labels into a tree of binary decisions and computes auxiliary losses/ranges.
+    This supports structured supervision for bucket-based watch-time modeling.
+    
+    Args: dataloader, wr_bucknum, _device.
+    """
+    # -------------------------------------------------------------------------
+    # Detailed developer notes (added for repository documentation):
+    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
+    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
+    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
+    # - If you change this code, re-run the corresponding run_*.py training to validate
+    # -------------------------------------------------------------------------
+    # Function-specific notes:
+    # - These functions are used across runs; changes affect reported metrics and comparability.
+    # - Prefer numerically stable implementations (clipping/eps) for histogram-based KL and logs.
+    # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
+    # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
+    # -------------------------------------------------------------------------
     all_play_time = []
     for _, (_, label) in enumerate(dataloader):
         play_time = label
@@ -24,6 +44,26 @@ def get_playtime_percentiles_range(dataloader, wr_bucknum, _device):
  
  
 def get_tree_classify_loss(label_dict, weight_dict, label_encoding_predict, tree_num_intervals=32):
+    """get_tree_classify_loss.
+    
+    TPM helper: encodes labels into a tree of binary decisions and computes auxiliary losses/ranges.
+    This supports structured supervision for bucket-based watch-time modeling.
+    
+    Args: label_dict, weight_dict, label_encoding_predict, tree_num_intervals.
+    """
+    # -------------------------------------------------------------------------
+    # Detailed developer notes (added for repository documentation):
+    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
+    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
+    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
+    # - If you change this code, re-run the corresponding run_*.py training to validate
+    # -------------------------------------------------------------------------
+    # Function-specific notes:
+    # - These functions are used across runs; changes affect reported metrics and comparability.
+    # - Prefer numerically stable implementations (clipping/eps) for histogram-based KL and logs.
+    # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
+    # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
+    # -------------------------------------------------------------------------
     auxiliary_loss_ = 0.0
     height = int(math.log2(tree_num_intervals)) 
     for i in range(height):
@@ -37,6 +77,26 @@ def get_tree_classify_loss(label_dict, weight_dict, label_encoding_predict, tree
     return final_loss.float()
  
 def get_tree_encoded_label(label,tree_num_intervals, begins, ends, name="label_encoding"):
+    """get_tree_encoded_label.
+    
+    TPM helper: encodes labels into a tree of binary decisions and computes auxiliary losses/ranges.
+    This supports structured supervision for bucket-based watch-time modeling.
+    
+    Args: label, tree_num_intervals, begins, ends, name.
+    """
+    # -------------------------------------------------------------------------
+    # Detailed developer notes (added for repository documentation):
+    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
+    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
+    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
+    # - If you change this code, re-run the corresponding run_*.py training to validate
+    # -------------------------------------------------------------------------
+    # Function-specific notes:
+    # - These functions are used across runs; changes affect reported metrics and comparability.
+    # - Prefer numerically stable implementations (clipping/eps) for histogram-based KL and logs.
+    # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
+    # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
+    # -------------------------------------------------------------------------
     label_dict = {}
     weight_dict = {}
     height = int(math.log2(tree_num_intervals))
@@ -62,6 +122,23 @@ def get_tree_encoded_label(label,tree_num_intervals, begins, ends, name="label_e
  
  
 def get_tree_encoded_value(label_encoding_predict, tree_num_intervals, begins, ends, name="encoded_playtime"):
+    """get_tree_encoded_value.
+    
+    Decodes TPM node probabilities into an expected bucket value and a variance-like uncertainty summary.
+    """
+    # -------------------------------------------------------------------------
+    # Detailed developer notes (added for repository documentation):
+    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
+    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
+    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
+    # - If you change this code, re-run the corresponding run_*.py training to validate
+    # -------------------------------------------------------------------------
+    # Function-specific notes:
+    # - These functions are used across runs; changes affect reported metrics and comparability.
+    # - Prefer numerically stable implementations (clipping/eps) for histogram-based KL and logs.
+    # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
+    # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
+    # -------------------------------------------------------------------------
     height = int(math.log2(tree_num_intervals))
     encoded_prob_list = []
     
@@ -97,12 +174,71 @@ def get_tree_encoded_value(label_encoding_predict, tree_num_intervals, begins, e
  
  
 class InversePairsCalc:
+    """InversePairsCalc.
+    
+    Auto-generated class documentation for utils module.
+    This class is part of the end-to-end watch-time prediction pipeline.
+    See surrounding comments for invariants, expected attributes, and data-flow contracts.
+    """
+    # -------------------------------------------------------------------------
+    # Detailed developer notes (added for repository documentation):
+    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
+    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
+    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
+    # - If you change this code, re-run the corresponding run_*.py training to validate
+    # -------------------------------------------------------------------------
+    # Function-specific notes:
+    # - These functions are used across runs; changes affect reported metrics and comparability.
+    # - Prefer numerically stable implementations (clipping/eps) for histogram-based KL and logs.
+    # - Class invariants: document expected member attributes and their shapes.
+    # - Initialization: if adding parameters, consider initialization to avoid training instability.
+    # -------------------------------------------------------------------------
     def InversePairs(self, data):
+        """InversePairs.
+        
+        Auto-generated function documentation for utils module.
+        See inline comments for data-flow assumptions (shapes/dtypes) and pipeline role.
+        
+        Args: self, data.
+        """
+        # -------------------------------------------------------------------------
+        # Detailed developer notes (added for repository documentation):
+        # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
+        # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
+        # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
+        # - If you change this code, re-run the corresponding run_*.py training to validate
+        # -------------------------------------------------------------------------
+        # Function-specific notes:
+        # - These functions are used across runs; changes affect reported metrics and comparability.
+        # - Prefer numerically stable implementations (clipping/eps) for histogram-based KL and logs.
+        # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
+        # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
+        # -------------------------------------------------------------------------
         if not data :
             return False
         if len(data)==1 :
             return 0
         def merge(tuple_fir,tuple_sec):
+            """merge.
+            
+            Auto-generated function documentation for utils module.
+            See inline comments for data-flow assumptions (shapes/dtypes) and pipeline role.
+            
+            Args: tuple_fir, tuple_sec.
+            """
+            # -------------------------------------------------------------------------
+            # Detailed developer notes (added for repository documentation):
+            # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
+            # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
+            # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
+            # - If you change this code, re-run the corresponding run_*.py training to validate
+            # -------------------------------------------------------------------------
+            # Function-specific notes:
+            # - These functions are used across runs; changes affect reported metrics and comparability.
+            # - Prefer numerically stable implementations (clipping/eps) for histogram-based KL and logs.
+            # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
+            # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
+            # -------------------------------------------------------------------------
             array_before = tuple_fir[0]
             cnt_before = tuple_fir[1]
             array_after = tuple_sec[0]
@@ -128,6 +264,26 @@ class InversePairsCalc:
             return array_merge[::-1],cnt
  
         def mergesort(array):
+            """mergesort.
+            
+            Auto-generated function documentation for utils module.
+            See inline comments for data-flow assumptions (shapes/dtypes) and pipeline role.
+            
+            Args: array.
+            """
+            # -------------------------------------------------------------------------
+            # Detailed developer notes (added for repository documentation):
+            # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
+            # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
+            # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
+            # - If you change this code, re-run the corresponding run_*.py training to validate
+            # -------------------------------------------------------------------------
+            # Function-specific notes:
+            # - These functions are used across runs; changes affect reported metrics and comparability.
+            # - Prefer numerically stable implementations (clipping/eps) for histogram-based KL and logs.
+            # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
+            # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
+            # -------------------------------------------------------------------------
             if len(array)==1:
                 return (array,0)
             cut = math.floor(len(array)/2)
@@ -137,6 +293,24 @@ class InversePairsCalc:
         return mergesort(data)[1]
  
 def eval_xauc(labels, pres):
+    """eval_xauc.
+    
+    Computes XAUC: a ranking-consistency score by counting label inversions after sorting by prediction.
+    This complements MAE by measuring monotonic alignment between scores and labels.
+    """
+    # -------------------------------------------------------------------------
+    # Detailed developer notes (added for repository documentation):
+    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
+    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
+    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
+    # - If you change this code, re-run the corresponding run_*.py training to validate
+    # -------------------------------------------------------------------------
+    # Function-specific notes:
+    # - These functions are used across runs; changes affect reported metrics and comparability.
+    # - Prefer numerically stable implementations (clipping/eps) for histogram-based KL and logs.
+    # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
+    # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
+    # -------------------------------------------------------------------------
     label_preds = zip(labels.reshape(-1), pres.reshape(-1))
     sorted_label_preds = sorted(
         label_preds, key=lambda lc: lc[1], reverse=True)
@@ -150,14 +324,69 @@ def eval_xauc(labels, pres):
     return xauc
 
 def eval_auc(labels, pres):
+    """eval_auc.
+    
+    Evaluation metric helper used by run scripts.
+    Keep this consistent across baselines to preserve comparability.
+    
+    Args: labels, pres.
+    """
+    # -------------------------------------------------------------------------
+    # Detailed developer notes (added for repository documentation):
+    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
+    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
+    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
+    # - If you change this code, re-run the corresponding run_*.py training to validate
+    # -------------------------------------------------------------------------
+    # Function-specific notes:
+    # - These functions are used across runs; changes affect reported metrics and comparability.
+    # - Prefer numerically stable implementations (clipping/eps) for histogram-based KL and logs.
+    # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
+    # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
+    # -------------------------------------------------------------------------
     auc = roc_auc_score(labels, pres)
     return  auc
 
 def eval_mae(labels, scores):
+    """eval_mae.
+    
+    Computes mean absolute error between labels and predictions (numpy arrays).
+    """
+    # -------------------------------------------------------------------------
+    # Detailed developer notes (added for repository documentation):
+    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
+    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
+    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
+    # - If you change this code, re-run the corresponding run_*.py training to validate
+    # -------------------------------------------------------------------------
+    # Function-specific notes:
+    # - These functions are used across runs; changes affect reported metrics and comparability.
+    # - Prefer numerically stable implementations (clipping/eps) for histogram-based KL and logs.
+    # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
+    # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
+    # -------------------------------------------------------------------------
     return np.mean(np.abs(labels - scores))
 
 def eval_kl(samples_p, samples_q, bins=100, epsilon=1e-10):
     # 计算直方图分箱概率
+    """eval_kl.
+    
+    Approximates KL divergence between two sample distributions using histogram binning.
+    Uses clipping epsilon to avoid log(0).
+    """
+    # -------------------------------------------------------------------------
+    # Detailed developer notes (added for repository documentation):
+    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
+    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
+    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
+    # - If you change this code, re-run the corresponding run_*.py training to validate
+    # -------------------------------------------------------------------------
+    # Function-specific notes:
+    # - These functions are used across runs; changes affect reported metrics and comparability.
+    # - Prefer numerically stable implementations (clipping/eps) for histogram-based KL and logs.
+    # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
+    # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
+    # -------------------------------------------------------------------------
     hist_p, bin_edges = np.histogram(samples_p, bins=bins, density=True)
     hist_q, _ = np.histogram(samples_q, bins=bin_edges, density=True)
     

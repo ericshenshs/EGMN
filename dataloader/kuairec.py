@@ -10,7 +10,42 @@ class KUAIRECDataset(Dataset):
     """
     Load a KuaiRec Dataset 
     """
+    # -------------------------------------------------------------------------
+    # Detailed developer notes (added for repository documentation):
+    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
+    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
+    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
+    # - If you change this code, re-run the corresponding run_*.py training to validate
+    # -------------------------------------------------------------------------
+    # Function-specific notes:
+    # - This code defines the feature->tensor contract used everywhere else.
+    # - Casting rules: sparse/sequence => long; continuous/masks => float32.
+    # - Performance note: pre-converting columns to tensors avoids per-sample overhead in __getitem__.
+    # - Class invariants: document expected member attributes and their shapes.
+    # - Initialization: if adding parameters, consider initialization to avoid training instability.
+    # -------------------------------------------------------------------------
     def __init__(self, dataset_name, df, description, device):
+        """__init__.
+        
+        Auto-generated function documentation for dataloader module.
+        See inline comments for data-flow assumptions (shapes/dtypes) and pipeline role.
+        
+        Args: self, dataset_name, df, description, device.
+        """
+        # -------------------------------------------------------------------------
+        # Detailed developer notes (added for repository documentation):
+        # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
+        # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
+        # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
+        # - If you change this code, re-run the corresponding run_*.py training to validate
+        # -------------------------------------------------------------------------
+        # Function-specific notes:
+        # - This code defines the feature->tensor contract used everywhere else.
+        # - Casting rules: sparse/sequence => long; continuous/masks => float32.
+        # - Performance note: pre-converting columns to tensors avoids per-sample overhead in __getitem__.
+        # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
+        # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
+        # -------------------------------------------------------------------------
         super(KUAIRECDataset, self).__init__()
         self.dataset_name = dataset_name
         self.df = df
@@ -22,6 +57,27 @@ class KUAIRECDataset(Dataset):
         self.label = 'play_time'
 
     def format(self, description, device):
+        """format.
+        
+        Auto-generated function documentation for dataloader module.
+        See inline comments for data-flow assumptions (shapes/dtypes) and pipeline role.
+        
+        Args: self, description, device.
+        """
+        # -------------------------------------------------------------------------
+        # Detailed developer notes (added for repository documentation):
+        # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
+        # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
+        # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
+        # - If you change this code, re-run the corresponding run_*.py training to validate
+        # -------------------------------------------------------------------------
+        # Function-specific notes:
+        # - This code defines the feature->tensor contract used everywhere else.
+        # - Casting rules: sparse/sequence => long; continuous/masks => float32.
+        # - Performance note: pre-converting columns to tensors avoids per-sample overhead in __getitem__.
+        # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
+        # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
+        # -------------------------------------------------------------------------
         for name, size, type in description:
             if type == 'spr' or type == 'seq':
                 self.name2array[name] = self.name2array[name].to(torch.long)
@@ -33,10 +89,53 @@ class KUAIRECDataset(Dataset):
                 raise ValueError('unkwon type {}'.format(type))
                 
     def __getitem__(self, index):
+        """__getitem__.
+        
+        Returns:
+        - features: dict[name -> tensor] for the given row index.
+        - label: scalar play_time tensor.
+        """
+        # -------------------------------------------------------------------------
+        # Detailed developer notes (added for repository documentation):
+        # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
+        # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
+        # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
+        # - If you change this code, re-run the corresponding run_*.py training to validate
+        # -------------------------------------------------------------------------
+        # Function-specific notes:
+        # - This code defines the feature->tensor contract used everywhere else.
+        # - Casting rules: sparse/sequence => long; continuous/masks => float32.
+        # - Performance note: pre-converting columns to tensors avoids per-sample overhead in __getitem__.
+        # - Returned dict keys must exactly match what model.forward expects.
+        # - Returned label should be shaped consistently (often scalar per row).
+        # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
+        # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
+        # -------------------------------------------------------------------------
         return {name: self.name2array[name][index] for name in self.features}, \
                 self.name2array[self.label][index].squeeze()
 
     def __len__(self):
+        """__len__.
+        
+        Auto-generated function documentation for dataloader module.
+        See inline comments for data-flow assumptions (shapes/dtypes) and pipeline role.
+        
+        Args: self.
+        """
+        # -------------------------------------------------------------------------
+        # Detailed developer notes (added for repository documentation):
+        # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
+        # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
+        # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
+        # - If you change this code, re-run the corresponding run_*.py training to validate
+        # -------------------------------------------------------------------------
+        # Function-specific notes:
+        # - This code defines the feature->tensor contract used everywhere else.
+        # - Casting rules: sparse/sequence => long; continuous/masks => float32.
+        # - Performance note: pre-converting columns to tensors avoids per-sample overhead in __getitem__.
+        # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
+        # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
+        # -------------------------------------------------------------------------
         return self.length
 
 
@@ -46,8 +145,43 @@ class KUAIRECDataLoader(object):
 
     :param dataset_path: dataset path
     """
+    # -------------------------------------------------------------------------
+    # Detailed developer notes (added for repository documentation):
+    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
+    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
+    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
+    # - If you change this code, re-run the corresponding run_*.py training to validate
+    # -------------------------------------------------------------------------
+    # Function-specific notes:
+    # - This code defines the feature->tensor contract used everywhere else.
+    # - Casting rules: sparse/sequence => long; continuous/masks => float32.
+    # - Performance note: pre-converting columns to tensors avoids per-sample overhead in __getitem__.
+    # - Class invariants: document expected member attributes and their shapes.
+    # - Initialization: if adding parameters, consider initialization to avoid training instability.
+    # -------------------------------------------------------------------------
 
     def __init__(self, dataset_name, dataset_path, device, bsz=32):
+        """__init__.
+        
+        Auto-generated function documentation for dataloader module.
+        See inline comments for data-flow assumptions (shapes/dtypes) and pipeline role.
+        
+        Args: self, dataset_name, dataset_path, device, bsz.
+        """
+        # -------------------------------------------------------------------------
+        # Detailed developer notes (added for repository documentation):
+        # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
+        # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
+        # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
+        # - If you change this code, re-run the corresponding run_*.py training to validate
+        # -------------------------------------------------------------------------
+        # Function-specific notes:
+        # - This code defines the feature->tensor contract used everywhere else.
+        # - Casting rules: sparse/sequence => long; continuous/masks => float32.
+        # - Performance note: pre-converting columns to tensors avoids per-sample overhead in __getitem__.
+        # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
+        # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
+        # -------------------------------------------------------------------------
         assert os.path.exists(dataset_path), '{} does not exist'.format(dataset_path)
         with open(dataset_path, 'rb+') as f:
             data = pickle.load(f)
@@ -62,5 +196,27 @@ class KUAIRECDataLoader(object):
                                 
 
     def __getitem__(self, name):
+        """__getitem__.
+        
+        Returns:
+        - features: dict[name -> tensor] for the given row index.
+        - label: scalar play_time tensor.
+        """
+        # -------------------------------------------------------------------------
+        # Detailed developer notes (added for repository documentation):
+        # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
+        # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
+        # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
+        # - If you change this code, re-run the corresponding run_*.py training to validate
+        # -------------------------------------------------------------------------
+        # Function-specific notes:
+        # - This code defines the feature->tensor contract used everywhere else.
+        # - Casting rules: sparse/sequence => long; continuous/masks => float32.
+        # - Performance note: pre-converting columns to tensors avoids per-sample overhead in __getitem__.
+        # - Returned dict keys must exactly match what model.forward expects.
+        # - Returned label should be shaped consistently (often scalar per row).
+        # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
+        # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
+        # -------------------------------------------------------------------------
         assert name in self.keys, '{} not in keys of datasets'.format(name)
         return self.dataloaders[name]

@@ -9,6 +9,25 @@ from model import Cread
 from utils import eval_mae, eval_xauc, eval_kl
 
 def get_args():
+    """get_args.
+    
+    Defines CLI arguments for the experiment (dataset path, device, hyperparameters).
+    Keeping all knobs here makes runs reproducible and easy to compare.
+    """
+    # -------------------------------------------------------------------------
+    # Detailed developer notes (added for repository documentation):
+    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
+    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
+    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
+    # - If you change this code, re-run the corresponding run_*.py training to validate
+    # -------------------------------------------------------------------------
+    # Function-specific notes:
+    # - This script is the experiment driver; it defines training loop, optimizer, and evaluation.
+    # - Keep loss/metric computation consistent across baselines to ensure fair comparisons.
+    # - Central place to document hyperparameters and provide reproducible defaults.
+    # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
+    # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
+    # -------------------------------------------------------------------------
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset_name', default='kuairec')
     parser.add_argument('--dataset_path', default='./dataset/')
@@ -28,6 +47,24 @@ def get_args():
     return args
 
 def get_loaders(name, dataset_path, device, bsz):
+    """get_loaders.
+    
+    Constructs dataset paths and instantiates the appropriate DataLoader wrapper.
+    """
+    # -------------------------------------------------------------------------
+    # Detailed developer notes (added for repository documentation):
+    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
+    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
+    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
+    # - If you change this code, re-run the corresponding run_*.py training to validate
+    # -------------------------------------------------------------------------
+    # Function-specific notes:
+    # - This script is the experiment driver; it defines training loop, optimizer, and evaluation.
+    # - Keep loss/metric computation consistent across baselines to ensure fair comparisons.
+    # - Constructs dataset paths and selects the correct DataLoader implementation.
+    # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
+    # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
+    # -------------------------------------------------------------------------
     path = os.path.join(dataset_path, name, "{}_data.pkl".format(name))
     if name == 'kuairec':
         dataloaders = KUAIRECDataLoader(name, path, device, bsz=bsz)
@@ -36,6 +73,26 @@ def get_loaders(name, dataset_path, device, bsz):
     return dataloaders
 
 def discretize_time_label(playtime, split_nodes):
+    """discretize_time_label.
+    
+    CREAD helper: converts between continuous play-time labels and discretized/bucketed representations.
+    Used to train multiple threshold heads and then restore a scalar prediction.
+    
+    Args: playtime, split_nodes.
+    """
+    # -------------------------------------------------------------------------
+    # Detailed developer notes (added for repository documentation):
+    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
+    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
+    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
+    # - If you change this code, re-run the corresponding run_*.py training to validate
+    # -------------------------------------------------------------------------
+    # Function-specific notes:
+    # - This script is the experiment driver; it defines training loop, optimizer, and evaluation.
+    # - Keep loss/metric computation consistent across baselines to ensure fair comparisons.
+    # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
+    # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
+    # -------------------------------------------------------------------------
     playtime = playtime.reshape([-1, 1, 1])
     split_nodes = split_nodes.reshape([1, 1, -1])
     cmp_tensor = playtime > split_nodes
@@ -43,16 +100,76 @@ def discretize_time_label(playtime, split_nodes):
     return torch.squeeze(binary_labels)
 
 def restore_time_label(preds, split_nodes):
+    """restore_time_label.
+    
+    CREAD helper: converts between continuous play-time labels and discretized/bucketed representations.
+    Used to train multiple threshold heads and then restore a scalar prediction.
+    
+    Args: preds, split_nodes.
+    """
+    # -------------------------------------------------------------------------
+    # Detailed developer notes (added for repository documentation):
+    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
+    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
+    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
+    # - If you change this code, re-run the corresponding run_*.py training to validate
+    # -------------------------------------------------------------------------
+    # Function-specific notes:
+    # - This script is the experiment driver; it defines training loop, optimizer, and evaluation.
+    # - Keep loss/metric computation consistent across baselines to ensure fair comparisons.
+    # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
+    # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
+    # -------------------------------------------------------------------------
     append_split_nodes = torch.concat((torch.tensor([0]).to(torch.float32).to(split_nodes.device), split_nodes)) 
     left_split_nodes, right_split_nodes = append_split_nodes[:-1], append_split_nodes[1:]
     bkt_size_list = right_split_nodes - left_split_nodes
     return torch.sum(preds * bkt_size_list.view([1, -1]), dim=1) # [bsz]
 
 def get_ord_criterion(preds):
+    """get_ord_criterion.
+    
+    Auto-generated function documentation for run_script module.
+    See inline comments for data-flow assumptions (shapes/dtypes) and pipeline role.
+    
+    Args: preds.
+    """
+    # -------------------------------------------------------------------------
+    # Detailed developer notes (added for repository documentation):
+    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
+    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
+    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
+    # - If you change this code, re-run the corresponding run_*.py training to validate
+    # -------------------------------------------------------------------------
+    # Function-specific notes:
+    # - This script is the experiment driver; it defines training loop, optimizer, and evaluation.
+    # - Keep loss/metric computation consistent across baselines to ensure fair comparisons.
+    # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
+    # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
+    # -------------------------------------------------------------------------
     left_preds, right_preds = preds[:,:-1], preds[:,1:]
     return torch.sum(torch.clamp(right_preds - left_preds, min=0.0))
 
 def get_split_nodes(all_labels, M, alpha):
+    """get_split_nodes.
+    
+    CREAD helper: computes split nodes (thresholds) for discretizing labels.
+    The choice of split nodes controls the supervision signal and reconstruction quality.
+    
+    Args: all_labels, M, alpha.
+    """
+    # -------------------------------------------------------------------------
+    # Detailed developer notes (added for repository documentation):
+    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
+    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
+    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
+    # - If you change this code, re-run the corresponding run_*.py training to validate
+    # -------------------------------------------------------------------------
+    # Function-specific notes:
+    # - This script is the experiment driver; it defines training loop, optimizer, and evaluation.
+    # - Keep loss/metric computation consistent across baselines to ensure fair comparisons.
+    # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
+    # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
+    # -------------------------------------------------------------------------
     split_nodes = []
     cdf_list = []
     for m in range(1, M+1):
@@ -63,6 +180,26 @@ def get_split_nodes(all_labels, M, alpha):
     return torch.tensor(split_nodes), torch.tensor(cdf_list)
 
 def cread_grid_search(dataloader_train, M):
+    """cread_grid_search.
+    
+    CREAD helper: computes split nodes (thresholds) for discretizing labels.
+    The choice of split nodes controls the supervision signal and reconstruction quality.
+    
+    Args: dataloader_train, M.
+    """
+    # -------------------------------------------------------------------------
+    # Detailed developer notes (added for repository documentation):
+    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
+    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
+    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
+    # - If you change this code, re-run the corresponding run_*.py training to validate
+    # -------------------------------------------------------------------------
+    # Function-specific notes:
+    # - This script is the experiment driver; it defines training loop, optimizer, and evaluation.
+    # - Keep loss/metric computation consistent across baselines to ensure fair comparisons.
+    # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
+    # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
+    # -------------------------------------------------------------------------
     all_labels = []
     for (_, label) in dataloader_train:
         all_labels.append(label) 
@@ -86,6 +223,26 @@ def cread_grid_search(dataloader_train, M):
     return best_split
 
 def mae_rescale_to_second(dataset, mae):
+    """mae_rescale_to_second.
+    
+    Rescales MAE from normalized label space back into seconds (dataset-specific).
+    Run scripts normalize play_time/duration; this utility restores human-readable units.
+    
+    Args: dataset, mae.
+    """
+    # -------------------------------------------------------------------------
+    # Detailed developer notes (added for repository documentation):
+    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
+    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
+    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
+    # - If you change this code, re-run the corresponding run_*.py training to validate
+    # -------------------------------------------------------------------------
+    # Function-specific notes:
+    # - This script is the experiment driver; it defines training loop, optimizer, and evaluation.
+    # - Keep loss/metric computation consistent across baselines to ensure fair comparisons.
+    # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
+    # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
+    # -------------------------------------------------------------------------
     if dataset == 'kuairec':
         return mae * 999639 / 1000
     elif dataset == 'wechat':
@@ -96,6 +253,28 @@ def mae_rescale_to_second(dataset, mae):
         raise ValueError('unkown dataset name: {}'.format(dataset))
 
 def test(args, model, dataloaders):
+    """test.
+    
+    Auto-generated function documentation for run_script module.
+    See inline comments for data-flow assumptions (shapes/dtypes) and pipeline role.
+    
+    Args: args, model, dataloaders.
+    """
+    # -------------------------------------------------------------------------
+    # Detailed developer notes (added for repository documentation):
+    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
+    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
+    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
+    # - If you change this code, re-run the corresponding run_*.py training to validate
+    # -------------------------------------------------------------------------
+    # Function-specific notes:
+    # - This script is the experiment driver; it defines training loop, optimizer, and evaluation.
+    # - Keep loss/metric computation consistent across baselines to ensure fair comparisons.
+    # - Always run eval under no_grad() and model.eval() to disable dropout/bn updates.
+    # - Convert tensors to CPU numpy only at the boundary to avoid device sync overhead.
+    # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
+    # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
+    # -------------------------------------------------------------------------
     model.eval()
     labels, scores, predicts = list(), list(), list()
     with torch.no_grad():

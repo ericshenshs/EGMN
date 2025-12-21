@@ -12,6 +12,25 @@ import pickle as pkl
 from torch.distributions import Normal
  
 def get_args():
+    """get_args.
+    
+    Defines CLI arguments for the experiment (dataset path, device, hyperparameters).
+    Keeping all knobs here makes runs reproducible and easy to compare.
+    """
+    # -------------------------------------------------------------------------
+    # Detailed developer notes (added for repository documentation):
+    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
+    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
+    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
+    # - If you change this code, re-run the corresponding run_*.py training to validate
+    # -------------------------------------------------------------------------
+    # Function-specific notes:
+    # - This script is the experiment driver; it defines training loop, optimizer, and evaluation.
+    # - Keep loss/metric computation consistent across baselines to ensure fair comparisons.
+    # - Central place to document hyperparameters and provide reproducible defaults.
+    # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
+    # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
+    # -------------------------------------------------------------------------
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset_name', default='kuairec')
     parser.add_argument('--dataset_path', default='./dataset/')
@@ -29,6 +48,24 @@ def get_args():
     return args
  
 def get_loaders(name, dataset_path, device, bsz):
+    """get_loaders.
+    
+    Constructs dataset paths and instantiates the appropriate DataLoader wrapper.
+    """
+    # -------------------------------------------------------------------------
+    # Detailed developer notes (added for repository documentation):
+    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
+    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
+    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
+    # - If you change this code, re-run the corresponding run_*.py training to validate
+    # -------------------------------------------------------------------------
+    # Function-specific notes:
+    # - This script is the experiment driver; it defines training loop, optimizer, and evaluation.
+    # - Keep loss/metric computation consistent across baselines to ensure fair comparisons.
+    # - Constructs dataset paths and selects the correct DataLoader implementation.
+    # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
+    # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
+    # -------------------------------------------------------------------------
     path = os.path.join(dataset_path, name, "{}_data.pkl".format(name))
     if name == 'kuairec':
         dataloaders = KUAIRECDataLoader(name, path, device, bsz=bsz)
@@ -37,9 +74,49 @@ def get_loaders(name, dataset_path, device, bsz):
     return dataloaders
  
 def label_norm(label, max_value):
+    """label_norm.
+    
+    Normalizes (and clamps) a label tensor/array by a maximum value.
+    Used in D2Q-style label transformations to keep targets in a stable range.
+    
+    Args: label, max_value.
+    """
+    # -------------------------------------------------------------------------
+    # Detailed developer notes (added for repository documentation):
+    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
+    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
+    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
+    # - If you change this code, re-run the corresponding run_*.py training to validate
+    # -------------------------------------------------------------------------
+    # Function-specific notes:
+    # - This script is the experiment driver; it defines training loop, optimizer, and evaluation.
+    # - Keep loss/metric computation consistent across baselines to ensure fair comparisons.
+    # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
+    # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
+    # -------------------------------------------------------------------------
     return torch.clamp(label, max=max_value)/max_value
  
 def from_value_to_quantile(bucket_quantiles, bucket_index, value):
+    """from_value_to_quantile.
+    
+    Maps between raw play-time values and within-bucket quantile coordinates.
+    This supports D2Q/D2CO training where the model predicts a normalized quantile target.
+    
+    Args: bucket_quantiles, bucket_index, value.
+    """
+    # -------------------------------------------------------------------------
+    # Detailed developer notes (added for repository documentation):
+    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
+    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
+    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
+    # - If you change this code, re-run the corresponding run_*.py training to validate
+    # -------------------------------------------------------------------------
+    # Function-specific notes:
+    # - This script is the experiment driver; it defines training loop, optimizer, and evaluation.
+    # - Keep loss/metric computation consistent across baselines to ensure fair comparisons.
+    # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
+    # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
+    # -------------------------------------------------------------------------
     quantile = bucket_quantiles[bucket_index]
     if len(quantile) < 2:
         return 0.0
@@ -57,6 +134,26 @@ def from_value_to_quantile(bucket_quantiles, bucket_index, value):
     return quantile
  
 def from_quantile_to_value(bucket_quantiles, bucket_index, quantile):
+    """from_quantile_to_value.
+    
+    Maps between raw play-time values and within-bucket quantile coordinates.
+    This supports D2Q/D2CO training where the model predicts a normalized quantile target.
+    
+    Args: bucket_quantiles, bucket_index, quantile.
+    """
+    # -------------------------------------------------------------------------
+    # Detailed developer notes (added for repository documentation):
+    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
+    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
+    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
+    # - If you change this code, re-run the corresponding run_*.py training to validate
+    # -------------------------------------------------------------------------
+    # Function-specific notes:
+    # - This script is the experiment driver; it defines training loop, optimizer, and evaluation.
+    # - Keep loss/metric computation consistent across baselines to ensure fair comparisons.
+    # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
+    # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
+    # -------------------------------------------------------------------------
     quantiles = bucket_quantiles[bucket_index]
     num_quantiles = len(quantiles)
     quantile_steps = np.linspace(0.0, 1.0, num_quantiles)
@@ -73,6 +170,26 @@ def from_quantile_to_value(bucket_quantiles, bucket_index, quantile):
     return interpolated_value
  
 def get_buckets_infor(buckets_quantiles_path):
+    """get_buckets_infor.
+    
+    Loads duration-bucket metadata (quantiles/ranges) from CSV into a Python structure.
+    This is required to map labels to targets and predictions back to real values.
+    
+    Args: buckets_quantiles_path.
+    """
+    # -------------------------------------------------------------------------
+    # Detailed developer notes (added for repository documentation):
+    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
+    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
+    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
+    # - If you change this code, re-run the corresponding run_*.py training to validate
+    # -------------------------------------------------------------------------
+    # Function-specific notes:
+    # - This script is the experiment driver; it defines training loop, optimizer, and evaluation.
+    # - Keep loss/metric computation consistent across baselines to ensure fair comparisons.
+    # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
+    # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
+    # -------------------------------------------------------------------------
     df = pd.read_csv(buckets_quantiles_path)
     bucket_quantiles = {}
  
@@ -84,6 +201,26 @@ def get_buckets_infor(buckets_quantiles_path):
     return bucket_quantiles
 
 def mae_rescale_to_second(dataset, mae):
+    """mae_rescale_to_second.
+    
+    Rescales MAE from normalized label space back into seconds (dataset-specific).
+    Run scripts normalize play_time/duration; this utility restores human-readable units.
+    
+    Args: dataset, mae.
+    """
+    # -------------------------------------------------------------------------
+    # Detailed developer notes (added for repository documentation):
+    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
+    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
+    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
+    # - If you change this code, re-run the corresponding run_*.py training to validate
+    # -------------------------------------------------------------------------
+    # Function-specific notes:
+    # - This script is the experiment driver; it defines training loop, optimizer, and evaluation.
+    # - Keep loss/metric computation consistent across baselines to ensure fair comparisons.
+    # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
+    # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
+    # -------------------------------------------------------------------------
     if dataset == 'kuairec':
         return mae * 999639 / 1000
     elif dataset == 'wechat':
@@ -94,6 +231,28 @@ def mae_rescale_to_second(dataset, mae):
         raise ValueError('unkown dataset name: {}'.format(dataset))
  
 def test(args, model, dataloaders):
+    """test.
+    
+    Auto-generated function documentation for run_script module.
+    See inline comments for data-flow assumptions (shapes/dtypes) and pipeline role.
+    
+    Args: args, model, dataloaders.
+    """
+    # -------------------------------------------------------------------------
+    # Detailed developer notes (added for repository documentation):
+    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
+    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
+    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
+    # - If you change this code, re-run the corresponding run_*.py training to validate
+    # -------------------------------------------------------------------------
+    # Function-specific notes:
+    # - This script is the experiment driver; it defines training loop, optimizer, and evaluation.
+    # - Keep loss/metric computation consistent across baselines to ensure fair comparisons.
+    # - Always run eval under no_grad() and model.eval() to disable dropout/bn updates.
+    # - Convert tensors to CPU numpy only at the boundary to avoid device sync overhead.
+    # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
+    # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
+    # -------------------------------------------------------------------------
     model.eval()
     labels, scores, predicts, durs = list(), list(), list(), list()
     with torch.no_grad():
