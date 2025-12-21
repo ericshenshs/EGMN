@@ -1,3 +1,10 @@
+"""run_d2co.py.
+
+This file is part of the watch-time prediction codebase.
+Primary role: run_script.
+Executable experiment driver: loads data, trains a model, and reports metrics.
+"""
+
 import os
 import copy
 import torch
@@ -16,23 +23,15 @@ from torch.distributions import Normal
 def get_args():
     """get_args.
     
-    Defines CLI arguments for the experiment (dataset path, device, hyperparameters).
-    Keeping all knobs here makes runs reproducible and easy to compare.
+    Parses CLI arguments for this experiment entrypoint.
+    The defaults define the baseline reproduction setting for this method.
+    
+    Args: (none).
+    Returns: argparse.Namespace.
     """
-    # -------------------------------------------------------------------------
-    # Detailed developer notes (added for repository documentation):
-    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
-    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
-    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
-    # - If you change this code, re-run the corresponding run_*.py training to validate
-    # -------------------------------------------------------------------------
-    # Function-specific notes:
-    # - This script is the experiment driver; it defines training loop, optimizer, and evaluation.
-    # - Keep loss/metric computation consistent across baselines to ensure fair comparisons.
-    # - Central place to document hyperparameters and provide reproducible defaults.
-    # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
-    # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
-    # -------------------------------------------------------------------------
+    # Notes:
+    # - Keep defaults stable for reproducibility (hyperparameters, device, batch size).
+    # - If you add new args, propagate them to model construction / loss computation consistently.
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset_name', default='kuairec')
     parser.add_argument('--dataset_path', default='./dataset/')
@@ -51,22 +50,14 @@ def get_args():
 def get_loaders(name, dataset_path, device, bsz):
     """get_loaders.
     
-    Constructs dataset paths and instantiates the appropriate DataLoader wrapper.
+    Builds the dataset artifact path and returns a dataset-specific DataLoader wrapper.
+    
+    Args: name, dataset_path, device, bsz.
+    Returns: KUAIRECDataLoader-like object with train/test loaders and .description.
     """
-    # -------------------------------------------------------------------------
-    # Detailed developer notes (added for repository documentation):
-    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
-    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
-    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
-    # - If you change this code, re-run the corresponding run_*.py training to validate
-    # -------------------------------------------------------------------------
-    # Function-specific notes:
-    # - This script is the experiment driver; it defines training loop, optimizer, and evaluation.
-    # - Keep loss/metric computation consistent across baselines to ensure fair comparisons.
-    # - Constructs dataset paths and selects the correct DataLoader implementation.
-    # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
-    # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
-    # -------------------------------------------------------------------------
+    # Notes:
+    # - Encodes the on-disk dataset layout assumption: dataset_path/dataset_name/{name}_data.pkl.
+    # - Returns a loader exposing .description schema, used to size embeddings and choose feature types.
     path = os.path.join(dataset_path, name, "{}_data.pkl".format(name))
     if name == 'kuairec':
         dataloaders = KUAIRECDataLoader(name, path, device, bsz=bsz)
@@ -79,24 +70,12 @@ def get_gmm_mean(df_train,n_bins):
     # using GMM to calculate the mean values of each distribution
     """get_gmm_mean.
     
-    D2CO helper: fits/uses a per-bucket Gaussian Mixture Model (GMM) to transform labels.
-    This maps a heavy-tailed label distribution to a more learnable target space and back.
-    
-    Args: df_train, n_bins.
+    Fits a 2-component GMM within each duration bucket to estimate short/long watch-time modes.
+    Returns smoothed per-bucket negative/positive means used by the D2CO label transform.
     """
-    # -------------------------------------------------------------------------
-    # Detailed developer notes (added for repository documentation):
-    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
-    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
-    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
-    # - If you change this code, re-run the corresponding run_*.py training to validate
-    # -------------------------------------------------------------------------
-    # Function-specific notes:
-    # - This script is the experiment driver; it defines training loop, optimizer, and evaluation.
-    # - Keep loss/metric computation consistent across baselines to ensure fair comparisons.
-    # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
-    # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
-    # -------------------------------------------------------------------------
+    # Notes:
+    # - Fits a 2-component GMM per duration bucket to estimate “short” vs “long” watch-time means.
+    # - Smooths per-bucket means using a frequency-weighted moving average to reduce noise in sparse buckets.
     gmmMeanList=[]
     durationBucketList= []
     playTimeList = []
@@ -120,24 +99,12 @@ def get_gmm_mean(df_train,n_bins):
     def freq_moving_ave(ls_v, ls_w, windows_size=5):
         """freq_moving_ave.
         
-        Auto-generated function documentation for run_script module.
-        See inline comments for data-flow assumptions (shapes/dtypes) and pipeline role.
-        
-        Args: ls_v, ls_w, windows_size.
+        Computes a frequency-weighted moving average of values over a centered window.
+        Used to smooth per-bucket statistics when some buckets have few samples.
         """
-        # -------------------------------------------------------------------------
-        # Detailed developer notes (added for repository documentation):
-        # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
-        # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
-        # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
-        # - If you change this code, re-run the corresponding run_*.py training to validate
-        # -------------------------------------------------------------------------
-        # Function-specific notes:
-        # - This script is the experiment driver; it defines training loop, optimizer, and evaluation.
-        # - Keep loss/metric computation consistent across baselines to ensure fair comparisons.
-        # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
-        # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
-        # -------------------------------------------------------------------------
+        # Notes:
+        # - Computes weighted rolling average: rolling(sum(value*weight)) / rolling(sum(weight)).
+        # - Used to smooth statistics across neighboring duration buckets.
         ls_mul = np.array(ls_v) * np.array(ls_w)
         amount = pd.Series(ls_mul)
         amount_sum = amount.rolling(2*windows_size-1, min_periods=1, center=True).agg(lambda x: np.sum(x))
@@ -156,24 +123,12 @@ def get_gmm_mean(df_train,n_bins):
 def get_gmm_label(label, idx, nega_GMM_mean, posi_GMM_mean ,alpha=1.0):
     """get_gmm_label.
     
-    D2CO helper: fits/uses a per-bucket Gaussian Mixture Model (GMM) to transform labels.
-    This maps a heavy-tailed label distribution to a more learnable target space and back.
-    
-    Args: label, idx, nega_GMM_mean, posi_GMM_mean, alpha.
+    Forward/inverse mapping between raw play_time and a bounded GMM-based target space.
+    Used so the model learns a smoother target and predictions can be decoded back to play_time.
     """
-    # -------------------------------------------------------------------------
-    # Detailed developer notes (added for repository documentation):
-    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
-    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
-    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
-    # - If you change this code, re-run the corresponding run_*.py training to validate
-    # -------------------------------------------------------------------------
-    # Function-specific notes:
-    # - This script is the experiment driver; it defines training loop, optimizer, and evaluation.
-    # - Keep loss/metric computation consistent across baselines to ensure fair comparisons.
-    # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
-    # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
-    # -------------------------------------------------------------------------
+    # Notes:
+    # - Maps a raw label into a [0,1]-like target using exponentiated interpolation between two GMM means.
+    # - Clips output to [0,1] to stay in a bounded regression range.
     p = nega_GMM_mean[idx]
     q = posi_GMM_mean[idx]
     gmm_label = (np.exp(alpha * label) - np.exp(alpha * q)) / (np.exp(alpha * p)- np.exp(alpha * q))
@@ -182,24 +137,12 @@ def get_gmm_label(label, idx, nega_GMM_mean, posi_GMM_mean ,alpha=1.0):
 def get_real_value(y, idx, nega_GMM_mean, posi_GMM_mean, alpha=1.0):
     """get_real_value.
     
-    D2CO helper: fits/uses a per-bucket Gaussian Mixture Model (GMM) to transform labels.
-    This maps a heavy-tailed label distribution to a more learnable target space and back.
-    
-    Args: y, idx, nega_GMM_mean, posi_GMM_mean, alpha.
+    Forward/inverse mapping between raw play_time and a bounded GMM-based target space.
+    Used so the model learns a smoother target and predictions can be decoded back to play_time.
     """
-    # -------------------------------------------------------------------------
-    # Detailed developer notes (added for repository documentation):
-    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
-    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
-    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
-    # - If you change this code, re-run the corresponding run_*.py training to validate
-    # -------------------------------------------------------------------------
-    # Function-specific notes:
-    # - This script is the experiment driver; it defines training loop, optimizer, and evaluation.
-    # - Keep loss/metric computation consistent across baselines to ensure fair comparisons.
-    # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
-    # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
-    # -------------------------------------------------------------------------
+    # Notes:
+    # - Inverse of get_gmm_label(): maps a predicted gmm-space value back to raw label via log/exp.
+    # - Ensures reported MAE is computed on the real play_time scale.
     p = nega_GMM_mean[idx]
     q = posi_GMM_mean[idx]
     real_y = np.log(y * (np.exp(alpha * p)- np.exp(alpha * q)) + np.exp(alpha * q)) / alpha
@@ -208,24 +151,12 @@ def get_real_value(y, idx, nega_GMM_mean, posi_GMM_mean, alpha=1.0):
 def mae_rescale_to_second(dataset, mae):
     """mae_rescale_to_second.
     
-    Rescales MAE from normalized label space back into seconds (dataset-specific).
-    Run scripts normalize play_time/duration; this utility restores human-readable units.
-    
-    Args: dataset, mae.
+    Converts MAE from normalized play_time units back to seconds for reporting.
+    The normalization constants mirror preprocessing conventions for each dataset.
     """
-    # -------------------------------------------------------------------------
-    # Detailed developer notes (added for repository documentation):
-    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
-    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
-    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
-    # - If you change this code, re-run the corresponding run_*.py training to validate
-    # -------------------------------------------------------------------------
-    # Function-specific notes:
-    # - This script is the experiment driver; it defines training loop, optimizer, and evaluation.
-    # - Keep loss/metric computation consistent across baselines to ensure fair comparisons.
-    # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
-    # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
-    # -------------------------------------------------------------------------
+    # Notes:
+    # - Labels are normalized in preprocessing; this rescales MAE back into seconds for reporting.
+    # - Constants are dataset-specific and should match the normalization used in preprocessing.
     if dataset == 'kuairec':
         return mae * 999639 / 1000
     elif dataset == 'wechat':
@@ -238,26 +169,16 @@ def mae_rescale_to_second(dataset, mae):
 def test(args, model, dataloaders, nega_GMM_mean, posi_GMM_mean):
     """test.
     
-    Auto-generated function documentation for run_script module.
-    See inline comments for data-flow assumptions (shapes/dtypes) and pipeline role.
+    Evaluation loop for the trained model on the test split.
+    Collects predictions and computes MAE/XAUC/KL via utils.py.
     
     Args: args, model, dataloaders, nega_GMM_mean, posi_GMM_mean.
+    Returns: None (prints metrics).
     """
-    # -------------------------------------------------------------------------
-    # Detailed developer notes (added for repository documentation):
-    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
-    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
-    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
-    # - If you change this code, re-run the corresponding run_*.py training to validate
-    # -------------------------------------------------------------------------
-    # Function-specific notes:
-    # - This script is the experiment driver; it defines training loop, optimizer, and evaluation.
-    # - Keep loss/metric computation consistent across baselines to ensure fair comparisons.
-    # - Always run eval under no_grad() and model.eval() to disable dropout/bn updates.
-    # - Convert tensors to CPU numpy only at the boundary to avoid device sync overhead.
-    # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
-    # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
-    # -------------------------------------------------------------------------
+    # Notes:
+    # - Uses model.eval() + torch.no_grad() to produce deterministic predictions and reduce memory.
+    # - Always compute metrics via utils.py to keep cross-method comparisons consistent.
+    # - If the model predicts in a transformed space (D2Q/D2CO/TPM), decode back to play_time before scoring.
     model.eval()
     labels, scores, predicts, durs = list(), list(), list(), list()
     with torch.no_grad():

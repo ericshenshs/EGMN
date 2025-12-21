@@ -1,50 +1,35 @@
+"""model/tpm.py.
+
+This file is part of the watch-time prediction codebase.
+Primary role: model.
+Defines one or more PyTorch modules that map feature dicts to predictions.
+"""
+
 import torch
 
 from model.layers import  MultiLayerPerceptronTPM
 
 class TPM(torch.nn.Module):
 
-    """TPM baseline model (tree-structured probability outputs).
+    """TPM.
     
-    Returns probabilities/logits for internal tree nodes over buckets.
-    Utilities in utils.py decode these node probabilities into an expected watch-time.
+    Tree-structured probability baseline.
+    Outputs logits/probabilities for internal tree nodes; utils.py decodes these into an expected play_time.
+    run_tpm.py trains using node-wise BCE + MSE on decoded expectation + variance regularization.
     """
-    # -------------------------------------------------------------------------
-    # Detailed developer notes (added for repository documentation):
-    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
-    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
-    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
-    # - If you change this code, re-run the corresponding run_*.py training to validate
-    # -------------------------------------------------------------------------
-    # Function-specific notes:
-    # - Expectation: input is a feature dict produced by the dataloader; keys must match the dataset description.
-    # - Ensure embedding-index tensors are dtype long and on the same device as the model.
-    # - Keep output shapes stable because run scripts and losses depend on them.
-    # - Class invariants: document expected member attributes and their shapes.
-    # - Initialization: if adding parameters, consider initialization to avoid training instability.
-    # -------------------------------------------------------------------------
+    # Notes:
+    # - Input contract: features are dict[str, Tensor] from dataloader; sparse/seq indices must be torch.long.
+    # - Sequence pooling uses a mask (name+"mask"); mask should be float (0/1) and sum(mask) should be > 0.
+    # - Output contract: shape and semantics must match the consuming run_*.py loss and evaluation logic.
     def __init__(self, description, class_num, embed_dim, mlp_dims, dropout):
         """__init__.
         
-        Auto-generated function documentation for model module.
-        See inline comments for data-flow assumptions (shapes/dtypes) and pipeline role.
-        
-        Args: self, description, class_num, embed_dim, mlp_dims, dropout.
+        Stores schema-derived feature metadata and builds submodules.
+        description determines which features are embedded (spr/seq) vs treated as continuous (ctn).
         """
-        # -------------------------------------------------------------------------
-        # Detailed developer notes (added for repository documentation):
-        # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
-        # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
-        # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
-        # - If you change this code, re-run the corresponding run_*.py training to validate
-        # -------------------------------------------------------------------------
-        # Function-specific notes:
-        # - Expectation: input is a feature dict produced by the dataloader; keys must match the dataset description.
-        # - Ensure embedding-index tensors are dtype long and on the same device as the model.
-        # - Keep output shapes stable because run scripts and losses depend on them.
-        # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
-        # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
-        # -------------------------------------------------------------------------
+        # Notes:
+        # - Parses description schema to decide which features are embedded vs treated as continuous.
+        # - Calls build() to allocate submodules sized to vocab sizes and embedding dimension.
         super().__init__()
         self.features = {name: (size, type) for name, size, type in description if (type in ["ctn", 'seq', 'spr'])}
         self.build(embed_dim, mlp_dims, dropout,class_num)
@@ -52,25 +37,11 @@ class TPM(torch.nn.Module):
     def build(self, embed_dim, mlp_dims, dropout,class_num):
         """build.
         
-        Auto-generated function documentation for model module.
-        See inline comments for data-flow assumptions (shapes/dtypes) and pipeline role.
-        
-        Args: self, embed_dim, mlp_dims, dropout, class_num.
+        Constructs submodules/parameters based on the dataset description (vocab sizes, feature types).
         """
-        # -------------------------------------------------------------------------
-        # Detailed developer notes (added for repository documentation):
-        # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
-        # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
-        # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
-        # - If you change this code, re-run the corresponding run_*.py training to validate
-        # -------------------------------------------------------------------------
-        # Function-specific notes:
-        # - Expectation: input is a feature dict produced by the dataloader; keys must match the dataset description.
-        # - Ensure embedding-index tensors are dtype long and on the same device as the model.
-        # - Keep output shapes stable because run scripts and losses depend on them.
-        # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
-        # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
-        # -------------------------------------------------------------------------
+        # Notes:
+        # - Creates per-feature embedding tables for spr/seq and per-feature linear layers for ctn.
+        # - Defines the MLP tower/head that converts concatenated feature representations into outputs.
         self.emb_layer = torch.nn.ModuleDict()
         self.ctn_emb_layer = torch.nn.ParameterDict()
         self.ctn_linear_layer = torch.nn.ModuleDict()
@@ -92,54 +63,29 @@ class TPM(torch.nn.Module):
     def init(self):
         """init.
         
-        Auto-generated function documentation for model module.
-        See inline comments for data-flow assumptions (shapes/dtypes) and pipeline role.
-        
-        Args: self.
+        Optional parameter initialization helper (uniform in this repo).
+        Not all run scripts call this explicitly.
         """
-        # -------------------------------------------------------------------------
-        # Detailed developer notes (added for repository documentation):
-        # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
-        # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
-        # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
-        # - If you change this code, re-run the corresponding run_*.py training to validate
-        # -------------------------------------------------------------------------
-        # Function-specific notes:
-        # - Expectation: input is a feature dict produced by the dataloader; keys must match the dataset description.
-        # - Ensure embedding-index tensors are dtype long and on the same device as the model.
-        # - Keep output shapes stable because run scripts and losses depend on them.
-        # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
-        # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
-        # -------------------------------------------------------------------------
+        # Notes:
+        # - Optional uniform initialization helper used by some experiments; not always called.
         for param in self.parameters():
             torch.nn.init.uniform_(param, -0.01, 0.01)
 
     def forward(self, x_dict):
         """forward.
         
-        Auto-generated function documentation for model module.
-        See inline comments for data-flow assumptions (shapes/dtypes) and pipeline role.
+        Computes model outputs from a feature dict.
+        The exact output shape is model-specific and must match the run script loss.
         
         Args: self, x_dict.
         """
-        # -------------------------------------------------------------------------
-        # Detailed developer notes (added for repository documentation):
-        # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
-        # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
-        # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
-        # - If you change this code, re-run the corresponding run_*.py training to validate
-        # -------------------------------------------------------------------------
-        # Function-specific notes:
-        # - Expectation: input is a feature dict produced by the dataloader; keys must match the dataset description.
-        # - Ensure embedding-index tensors are dtype long and on the same device as the model.
-        # - Keep output shapes stable because run scripts and losses depend on them.
-        # - Shape note: sparse features are typically (B, 1) longs; sequence features are (B, L) with a corresponding mask (B, L).
-        # - Pooling note: sequence embeddings are masked and then averaged; be careful about division by zero if mask sums can be 0.
-        # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
-        # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
-        # -------------------------------------------------------------------------
+        # Notes:
+        # - Builds per-feature representations then concatenates them into a single vector per sample.
+        # - Sequence features are pooled by masked mean: sum(emb*mask)/sum(mask).
+        # - Final output is typically sigmoid-transformed in these baselines (matching their run scripts).
         linears = []
         embs = []
+        # Iterate over schema-declared features and build per-feature representations.
         for name, (_, type) in self.features.items():
             x = x_dict[name]
             if type == 'spr':
@@ -149,6 +95,7 @@ class TPM(torch.nn.Module):
             elif type == 'seq':
                 seq_emb = self.emb_layer[name](x)
                 seq_mask = torch.unsqueeze(x_dict["{}mask".format(name)], dim=2)
+                # Masked mean pooling over sequence length (avoid attending to padding).
                 embs.append(torch.sum(seq_emb * seq_mask, dim=1) / torch.sum(seq_mask, dim=1))
             else:
                 raise ValueError('unkwon feature: {}'.format(name))

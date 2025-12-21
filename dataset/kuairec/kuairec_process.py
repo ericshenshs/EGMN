@@ -1,3 +1,10 @@
+"""dataset/kuairec/kuairec_process.py.
+
+This file is part of the watch-time prediction codebase.
+Primary role: preprocessing.
+One-off preprocessing script that writes dataset artifacts consumed by dataloader.
+"""
+
 import pandas as pd
 import numpy as np
 import pickle

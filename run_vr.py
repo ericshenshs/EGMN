@@ -1,3 +1,10 @@
+"""run_vr.py.
+
+This file is part of the watch-time prediction codebase.
+Primary role: run_script.
+Executable experiment driver: loads data, trains a model, and reports metrics.
+"""
+
 import os
 import copy
 import torch
@@ -11,23 +18,15 @@ from utils import eval_mae, eval_xauc, eval_kl
 def get_args():
     """get_args.
     
-    Defines CLI arguments for the experiment (dataset path, device, hyperparameters).
-    Keeping all knobs here makes runs reproducible and easy to compare.
+    Parses CLI arguments for this experiment entrypoint.
+    The defaults define the baseline reproduction setting for this method.
+    
+    Args: (none).
+    Returns: argparse.Namespace.
     """
-    # -------------------------------------------------------------------------
-    # Detailed developer notes (added for repository documentation):
-    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
-    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
-    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
-    # - If you change this code, re-run the corresponding run_*.py training to validate
-    # -------------------------------------------------------------------------
-    # Function-specific notes:
-    # - This script is the experiment driver; it defines training loop, optimizer, and evaluation.
-    # - Keep loss/metric computation consistent across baselines to ensure fair comparisons.
-    # - Central place to document hyperparameters and provide reproducible defaults.
-    # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
-    # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
-    # -------------------------------------------------------------------------
+    # Notes:
+    # - Keep defaults stable for reproducibility (hyperparameters, device, batch size).
+    # - If you add new args, propagate them to model construction / loss computation consistently.
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset_name', default='kuairec')
     parser.add_argument('--dataset_path', default='./dataset/')
@@ -46,22 +45,14 @@ def get_args():
 def get_loaders(name, dataset_path, device, bsz):
     """get_loaders.
     
-    Constructs dataset paths and instantiates the appropriate DataLoader wrapper.
+    Builds the dataset artifact path and returns a dataset-specific DataLoader wrapper.
+    
+    Args: name, dataset_path, device, bsz.
+    Returns: KUAIRECDataLoader-like object with train/test loaders and .description.
     """
-    # -------------------------------------------------------------------------
-    # Detailed developer notes (added for repository documentation):
-    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
-    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
-    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
-    # - If you change this code, re-run the corresponding run_*.py training to validate
-    # -------------------------------------------------------------------------
-    # Function-specific notes:
-    # - This script is the experiment driver; it defines training loop, optimizer, and evaluation.
-    # - Keep loss/metric computation consistent across baselines to ensure fair comparisons.
-    # - Constructs dataset paths and selects the correct DataLoader implementation.
-    # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
-    # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
-    # -------------------------------------------------------------------------
+    # Notes:
+    # - Encodes the on-disk dataset layout assumption: dataset_path/dataset_name/{name}_data.pkl.
+    # - Returns a loader exposing .description schema, used to size embeddings and choose feature types.
     path = os.path.join(dataset_path, name, "{}_data.pkl".format(name))
     if name == 'kuairec':
         dataloaders = KUAIRECDataLoader(name, path, device, bsz=bsz)
@@ -72,24 +63,12 @@ def get_loaders(name, dataset_path, device, bsz):
 def mae_rescale_to_second(dataset, mae):
     """mae_rescale_to_second.
     
-    Rescales MAE from normalized label space back into seconds (dataset-specific).
-    Run scripts normalize play_time/duration; this utility restores human-readable units.
-    
-    Args: dataset, mae.
+    Converts MAE from normalized play_time units back to seconds for reporting.
+    The normalization constants mirror preprocessing conventions for each dataset.
     """
-    # -------------------------------------------------------------------------
-    # Detailed developer notes (added for repository documentation):
-    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
-    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
-    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
-    # - If you change this code, re-run the corresponding run_*.py training to validate
-    # -------------------------------------------------------------------------
-    # Function-specific notes:
-    # - This script is the experiment driver; it defines training loop, optimizer, and evaluation.
-    # - Keep loss/metric computation consistent across baselines to ensure fair comparisons.
-    # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
-    # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
-    # -------------------------------------------------------------------------
+    # Notes:
+    # - Labels are normalized in preprocessing; this rescales MAE back into seconds for reporting.
+    # - Constants are dataset-specific and should match the normalization used in preprocessing.
     if dataset == 'kuairec':
         return mae * 999639 / 1000
     elif dataset == 'wechat':
@@ -102,26 +81,16 @@ def mae_rescale_to_second(dataset, mae):
 def test(args, model, dataloaders):
     """test.
     
-    Auto-generated function documentation for run_script module.
-    See inline comments for data-flow assumptions (shapes/dtypes) and pipeline role.
+    Evaluation loop for the trained model on the test split.
+    Collects predictions and computes MAE/XAUC/KL via utils.py.
     
     Args: args, model, dataloaders.
+    Returns: None (prints metrics).
     """
-    # -------------------------------------------------------------------------
-    # Detailed developer notes (added for repository documentation):
-    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
-    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
-    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
-    # - If you change this code, re-run the corresponding run_*.py training to validate
-    # -------------------------------------------------------------------------
-    # Function-specific notes:
-    # - This script is the experiment driver; it defines training loop, optimizer, and evaluation.
-    # - Keep loss/metric computation consistent across baselines to ensure fair comparisons.
-    # - Always run eval under no_grad() and model.eval() to disable dropout/bn updates.
-    # - Convert tensors to CPU numpy only at the boundary to avoid device sync overhead.
-    # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
-    # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
-    # -------------------------------------------------------------------------
+    # Notes:
+    # - Uses model.eval() + torch.no_grad() to produce deterministic predictions and reduce memory.
+    # - Always compute metrics via utils.py to keep cross-method comparisons consistent.
+    # - If the model predicts in a transformed space (D2Q/D2CO/TPM), decode back to play_time before scoring.
     model.eval()
     labels, scores, predicts = list(), list(), list()
     with torch.no_grad():

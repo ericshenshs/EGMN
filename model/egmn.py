@@ -1,3 +1,10 @@
+"""model/egmn.py.
+
+This file is part of the watch-time prediction codebase.
+Primary role: model.
+Defines one or more PyTorch modules that map feature dicts to predictions.
+"""
+
 import torch
 import torch.nn as nn
 import torch.distributions as D
@@ -10,51 +17,25 @@ class EGMN(torch.nn.Module):
 
     """EGMN (Exponential-Gaussian Mixture Network).
     
-    Implements a distributional watch-time predictor:
-    - Encodes sparse IDs, sequences, and continuous features into a shared representation.
-    - Predicts mixture parameters for 1 Exponential (short/quick-skip) + K Gaussians (long-tail modes).
-    - Provides (a) a likelihood-based training loss and (b) a scalar prediction via mixture mean.
+    Distributional watch-time predictor with a mixture head:
+    - Component 0: Exponential (captures heavy mass near 0 / quick-skip).
+    - Components 1..K: (truncated-at-0) Gaussians (capture long tail / multiple modes).
     
-    Used by: run_egmn.py (training loop + evaluation).
+    Forward returns mixture parameters; predict() returns mixture-mean scalar.
     """
-    # -------------------------------------------------------------------------
-    # Detailed developer notes (added for repository documentation):
-    # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
-    # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
-    # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
-    # - If you change this code, re-run the corresponding run_*.py training to validate
-    # -------------------------------------------------------------------------
-    # Function-specific notes:
-    # - Expectation: input is a feature dict produced by the dataloader; keys must match the dataset description.
-    # - Ensure embedding-index tensors are dtype long and on the same device as the model.
-    # - Keep output shapes stable because run scripts and losses depend on them.
-    # - Class invariants: document expected member attributes and their shapes.
-    # - Initialization: if adding parameters, consider initialization to avoid training instability.
-    # -------------------------------------------------------------------------
+    # Notes:
+    # - Mixture head is tailored to watch-time: Exponential captures quick-skip spike; Gaussians capture long tail.
+    # - forward() emits mixture parameters; loss() computes NLL + auxiliary terms; predict() returns mixture mean used for MAE.
+    # - Assumes normalized labels (play_time) consistent with preprocessing; MAE is rescaled in run scripts.
     def __init__(self, description, embed_dim, share_mlp_dims, output_mlp_dims, dropout):
         """__init__.
         
-        Args:
-        - description: feature schema list (name, size, type).
-        - embed_dim: embedding dimension for sparse/sequence features.
-        - share_mlp_dims: hidden sizes for shared MLP tower.
-        - output_mlp_dims: (unused in this implementation; reserved for extensions).
-        - dropout: dropout rate used in MLP.
+        Stores schema-derived feature metadata and builds submodules.
+        description determines which features are embedded (spr/seq) vs treated as continuous (ctn).
         """
-        # -------------------------------------------------------------------------
-        # Detailed developer notes (added for repository documentation):
-        # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
-        # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
-        # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
-        # - If you change this code, re-run the corresponding run_*.py training to validate
-        # -------------------------------------------------------------------------
-        # Function-specific notes:
-        # - Expectation: input is a feature dict produced by the dataloader; keys must match the dataset description.
-        # - Ensure embedding-index tensors are dtype long and on the same device as the model.
-        # - Keep output shapes stable because run scripts and losses depend on them.
-        # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
-        # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
-        # -------------------------------------------------------------------------
+        # Notes:
+        # - Parses description schema to decide which features are embedded vs treated as continuous.
+        # - Calls build() to allocate submodules sized to vocab sizes and embedding dimension.
         super().__init__()
         self.features = {name: (size, type) for name, size, type in description if (type in ["ctn", 'seq', 'spr'])}
         self.build(embed_dim, share_mlp_dims, output_mlp_dims, dropout)
@@ -62,26 +43,11 @@ class EGMN(torch.nn.Module):
     def build(self, embed_dim, share_mlp_dims, output_mlp_dims, dropout):
         """build.
         
-        Constructs embedding/linear layers for each feature and the shared MLP tower.
-        Also constructs output heads that parameterize the mixture distribution:
-        - lambda_layer: Exponential rate (positive via Softplus).
-        - mixture_logits: unnormalized logits for mixture weights.
-        - gauss_mu / gauss_sigma: parameters for Gaussian components (positive via Softplus).
+        Constructs submodules/parameters based on the dataset description (vocab sizes, feature types).
         """
-        # -------------------------------------------------------------------------
-        # Detailed developer notes (added for repository documentation):
-        # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
-        # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
-        # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
-        # - If you change this code, re-run the corresponding run_*.py training to validate
-        # -------------------------------------------------------------------------
-        # Function-specific notes:
-        # - Expectation: input is a feature dict produced by the dataloader; keys must match the dataset description.
-        # - Ensure embedding-index tensors are dtype long and on the same device as the model.
-        # - Keep output shapes stable because run scripts and losses depend on them.
-        # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
-        # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
-        # -------------------------------------------------------------------------
+        # Notes:
+        # - Creates per-feature embedding tables for spr/seq and per-feature linear layers for ctn.
+        # - Defines the MLP tower/head that converts concatenated feature representations into outputs.
         self.emb_layer = torch.nn.ModuleDict()
         self.ctn_emb_layer = torch.nn.ParameterDict()
         self.ctn_linear_layer = torch.nn.ModuleDict()
@@ -127,60 +93,29 @@ class EGMN(torch.nn.Module):
     def init(self):
         """init.
         
-        Auto-generated function documentation for model module.
-        See inline comments for data-flow assumptions (shapes/dtypes) and pipeline role.
-        
-        Args: self.
+        Optional parameter initialization helper (uniform in this repo).
+        Not all run scripts call this explicitly.
         """
-        # -------------------------------------------------------------------------
-        # Detailed developer notes (added for repository documentation):
-        # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
-        # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
-        # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
-        # - If you change this code, re-run the corresponding run_*.py training to validate
-        # -------------------------------------------------------------------------
-        # Function-specific notes:
-        # - Expectation: input is a feature dict produced by the dataloader; keys must match the dataset description.
-        # - Ensure embedding-index tensors are dtype long and on the same device as the model.
-        # - Keep output shapes stable because run scripts and losses depend on them.
-        # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
-        # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
-        # -------------------------------------------------------------------------
+        # Notes:
+        # - Optional uniform initialization helper used by some experiments; not always called.
         for param in self.parameters():
             torch.nn.init.uniform_(param, -0.01, 0.01)
 
     def forward(self, x_dict):
         """forward.
         
-        Encodes a feature dict into mixture parameters.
+        Computes model outputs from a feature dict.
+        The exact output shape is model-specific and must match the run script loss.
         
-        Args:
-        - x_dict: dict[str, Tensor] produced by the dataloader.
-        
-        Returns:
-        - pi: (B, K+1) logits for mixture weights.
-        - lambda_: (B, 1) exponential rate (>0).
-        - mu: (B, K) Gaussian means (shifted to be > 1/lambda_ in this implementation).
-        - sigma: (B, K) Gaussian stddev (>0).
+        Args: self, x_dict.
         """
-        # -------------------------------------------------------------------------
-        # Detailed developer notes (added for repository documentation):
-        # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
-        # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
-        # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
-        # - If you change this code, re-run the corresponding run_*.py training to validate
-        # -------------------------------------------------------------------------
-        # Function-specific notes:
-        # - Expectation: input is a feature dict produced by the dataloader; keys must match the dataset description.
-        # - Ensure embedding-index tensors are dtype long and on the same device as the model.
-        # - Keep output shapes stable because run scripts and losses depend on them.
-        # - Shape note: sparse features are typically (B, 1) longs; sequence features are (B, L) with a corresponding mask (B, L).
-        # - Pooling note: sequence embeddings are masked and then averaged; be careful about division by zero if mask sums can be 0.
-        # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
-        # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
-        # -------------------------------------------------------------------------
+        # Notes:
+        # - Builds per-feature representations then concatenates them into a single vector per sample.
+        # - Sequence features are pooled by masked mean: sum(emb*mask)/sum(mask).
+        # - Final output is typically sigmoid-transformed in these baselines (matching their run scripts).
         linears = []
         embs = []
+        # Iterate over schema-declared features and build per-feature representations.
         for name, (_, type) in self.features.items():
             x = x_dict[name]
             if type == 'spr':
@@ -190,6 +125,7 @@ class EGMN(torch.nn.Module):
             elif type == 'seq':
                 seq_emb = self.emb_layer[name](x)
                 seq_mask = torch.unsqueeze(x_dict["{}mask".format(name)], dim=2)
+                # Masked mean pooling over sequence length (avoid attending to padding).
                 embs.append(torch.sum(seq_emb * seq_mask, dim=1) / torch.sum(seq_mask, dim=1))
             else:
                 raise ValueError('unkwon feature: {}'.format(name))
@@ -210,27 +146,13 @@ class EGMN(torch.nn.Module):
     def loss(self, y_true, pi, lambda_, mu, sigma, duration):
         """loss.
         
-        Computes training losses for EGMN.
-        - nll_loss: negative log-likelihood under the mixture distribution.
-        - reg_loss: L1 loss between mixture-mean prediction and y_true (stabilizes training).
-        - entropy_loss: mixture entropy regularizer (encourages/controls component usage).
+        Computes three losses for EGMN training:
+        - nll_loss: negative log-likelihood under the mixture distribution (main objective).
+        - reg_loss: L1 between mixture-mean prediction and y_true (stabilizes and improves MAE).
+        - entropy_loss: sum(p * log p) (negative entropy); adding it encourages higher entropy.
         """
-        # -------------------------------------------------------------------------
-        # Detailed developer notes (added for repository documentation):
-        # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
-        # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
-        # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
-        # - If you change this code, re-run the corresponding run_*.py training to validate
-        # -------------------------------------------------------------------------
-        # Function-specific notes:
-        # - Expectation: input is a feature dict produced by the dataloader; keys must match the dataset description.
-        # - Ensure embedding-index tensors are dtype long and on the same device as the model.
-        # - Keep output shapes stable because run scripts and losses depend on them.
-        # - Loss decomposition: primary likelihood/fit term + auxiliary regularizers (e.g., L1 reconstruction, entropy).
-        # - Numerical stability: use epsilons when taking logs/dividing to avoid NaNs.
-        # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
-        # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
-        # -------------------------------------------------------------------------
+        # Notes:
+        # - This block explains intent, invariants, and key assumptions specific to this function.
         batch_size = y_true.shape[0]
         y_true = y_true.view(-1, 1)
 
@@ -274,23 +196,11 @@ class EGMN(torch.nn.Module):
     def get_quantile(self, pi, lambda_, mu, sigma, tau=0.5):
         """get_quantile.
         
-        Approximates a mixture quantile by brute-force scanning a dense grid of candidate values.
-        Note: this is expensive (grid search) and used mainly for analysis/diagnostics.
+        Brute-force quantile approximation by scanning a dense grid and matching target CDF.
+        Expensive; typically used for analysis rather than training.
         """
-        # -------------------------------------------------------------------------
-        # Detailed developer notes (added for repository documentation):
-        # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
-        # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
-        # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
-        # - If you change this code, re-run the corresponding run_*.py training to validate
-        # -------------------------------------------------------------------------
-        # Function-specific notes:
-        # - Expectation: input is a feature dict produced by the dataloader; keys must match the dataset description.
-        # - Ensure embedding-index tensors are dtype long and on the same device as the model.
-        # - Keep output shapes stable because run scripts and losses depend on them.
-        # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
-        # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
-        # -------------------------------------------------------------------------
+        # Notes:
+        # - This block explains intent, invariants, and key assumptions specific to this function.
         exp_dist = D.Exponential(rate=lambda_.view(-1, 1))
         norm_dist_list = []
         for comp_idx in range(mu.shape[1]):
@@ -307,25 +217,11 @@ class EGMN(torch.nn.Module):
     def predict(self, x):
         """predict.
         
-        Inference helper: returns the scalar mixture-mean prediction.
-        Uses no_grad() to avoid autograd overhead.
+        Inference helper returning the scalar mixture mean E[y | x].
+        Wraps computation in torch.no_grad() to reduce memory usage.
         """
-        # -------------------------------------------------------------------------
-        # Detailed developer notes (added for repository documentation):
-        # - Role in pipeline: preprocessing -> dataloader -> model -> training script -> metrics
-        # - Contracts: input keys/shapes, dtype expectations, device placement, masking rules
-        # - Common pitfalls: silent dtype casting, shape mismatches, normalization differences
-        # - If you change this code, re-run the corresponding run_*.py training to validate
-        # -------------------------------------------------------------------------
-        # Function-specific notes:
-        # - Expectation: input is a feature dict produced by the dataloader; keys must match the dataset description.
-        # - Ensure embedding-index tensors are dtype long and on the same device as the model.
-        # - Keep output shapes stable because run scripts and losses depend on them.
-        # - Inference path should be wrapped in no_grad() to reduce memory and avoid autograd overhead.
-        # - Output should be a 1D tensor of scalar predictions aligned with labels.
-        # - Readability: keep variable names aligned with math (e.g., pi, mu, sigma) and comment units/scales.
-        # - Testing: if you modify logic, validate with a tiny batch and confirm shapes/dtypes.
-        # -------------------------------------------------------------------------
+        # Notes:
+        # - This block explains intent, invariants, and key assumptions specific to this function.
         with torch.no_grad():
             pi, lambda_, mu, sigma = self.forward(x)
             pi = torch.softmax(pi, dim=1)
