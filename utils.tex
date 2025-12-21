@@ -1,0 +1,160 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{fancyvrb}
+\usepackage{listings}
+\usepackage{CJKutf8}
+\lstset{basicstyle=\ttfamily\small,columns=fullflexible,breaklines=true,upquote=true,frame=single,framerule=0.2pt,tabsize=2}
+
+\title{\texttt{\detokenize{utils.py}} (Q\&A Documentation)}
+\author{}
+\date{}
+\begin{document}
+\begin{CJK*}{UTF8}{gbsn}
+\maketitle
+
+\paragraph{Q: What does this file provide?}
+\textbf{A:} This file provides shared metrics (MAE, XAUC, KL) and TPM-specific encoding/decoding helpers for tree-based bucket prediction.
+
+\paragraph{Q: Why does the repo use XAUC for a regression-like task?}
+\textbf{A:} XAUC measures whether larger predictions correspond to larger labels (a ranking-consistency signal). It complements MAE (absolute error).
+
+\paragraph{Q: What does this file export (public API)?}
+\textbf{A:} The public API is the set of classes/functions other modules import (sometimes re-exported by package initializers). The key top-level definitions detected here are:
+
+\begin{Verbatim}[fontsize=\small]
+def get_playtime_percentiles_range(...)  # function
+def get_tree_classify_loss(...)  # function
+def get_tree_encoded_label(...)  # function
+def get_tree_encoded_value(...)  # function
+class InversePairsCalc  # methods: InversePairs
+def eval_xauc(...)  # function
+def eval_auc(...)  # function
+def eval_mae(...)  # function
+def eval_kl(...)  # function
+\end{Verbatim}
+
+\paragraph{Q: What are the main dependencies (imports) and why do they matter?}
+\textbf{A:} Imports show whether this file is model code (torch), data code (pandas), or evaluation/analysis (sklearn). They also determine runtime requirements.
+
+\vspace{1mm}
+\VerbatimInput[firstline=1,lastline=50,fontsize=\small]{/workspace/utils.py}
+
+
+\paragraph{Q: What is \texttt{\detokenize{get_playtime_percentiles_range}} and what responsibility does it have?}
+\textbf{A:} This function is a core unit in the pipeline. Its responsibility is inferred from its name and how run scripts call it.
+
+\paragraph{Q: What does the implementation look like for \texttt{\detokenize{get_playtime_percentiles_range}}?}
+\textbf{A:} Excerpt from the file:
+
+\vspace{1mm}
+\VerbatimInput[firstline=13,lastline=23,fontsize=\scriptsize]{/workspace/utils.py}
+
+
+\paragraph{Q: What is \texttt{\detokenize{get_tree_classify_loss}} and what responsibility does it have?}
+\textbf{A:} This function is a core unit in the pipeline. Its responsibility is inferred from its name and how run scripts call it.
+
+\paragraph{Q: What does the implementation look like for \texttt{\detokenize{get_tree_classify_loss}}?}
+\textbf{A:} Excerpt from the file:
+
+\vspace{1mm}
+\VerbatimInput[firstline=26,lastline=37,fontsize=\scriptsize]{/workspace/utils.py}
+
+
+\paragraph{Q: What is \texttt{\detokenize{get_tree_encoded_label}} and what responsibility does it have?}
+\textbf{A:} This function is a core unit in the pipeline. Its responsibility is inferred from its name and how run scripts call it.
+
+\paragraph{Q: What does the implementation look like for \texttt{\detokenize{get_tree_encoded_label}}?}
+\textbf{A:} Excerpt from the file:
+
+\vspace{1mm}
+\VerbatimInput[firstline=39,lastline=61,fontsize=\scriptsize]{/workspace/utils.py}
+
+
+\paragraph{Q: What is \texttt{\detokenize{get_tree_encoded_value}} and what responsibility does it have?}
+\textbf{A:} This function is a core unit in the pipeline. Its responsibility is inferred from its name and how run scripts call it.
+
+\paragraph{Q: What does the implementation look like for \texttt{\detokenize{get_tree_encoded_value}}?}
+\textbf{A:} Excerpt from the file:
+
+\vspace{1mm}
+\VerbatimInput[firstline=64,lastline=96,fontsize=\scriptsize]{/workspace/utils.py}
+
+
+\paragraph{Q: What is \texttt{\detokenize{InversePairsCalc}} and what responsibility does it have?}
+\textbf{A:} This class is a core unit in the pipeline. Its responsibility is inferred from its name and how run scripts call it.
+
+\paragraph{Q: What are the important methods on \texttt{\detokenize{InversePairsCalc}}?}
+\textbf{A:} In this repo, methods like forward/loss/predict define computation and training targets. The methods found are:
+
+\begin{Verbatim}[fontsize=\small]
+InversePairs
+\end{Verbatim}
+
+\paragraph{Q: What does the implementation look like for \texttt{\detokenize{InversePairsCalc}}?}
+\textbf{A:} Excerpt from the file:
+
+\vspace{1mm}
+\VerbatimInput[firstline=99,lastline=137,fontsize=\scriptsize]{/workspace/utils.py}
+
+
+\paragraph{Q: What is \texttt{\detokenize{eval_xauc}} and what responsibility does it have?}
+\textbf{A:} This function is a core unit in the pipeline. Its responsibility is inferred from its name and how run scripts call it.
+
+\paragraph{Q: What does the implementation look like for \texttt{\detokenize{eval_xauc}}?}
+\textbf{A:} Excerpt from the file:
+
+\vspace{1mm}
+\VerbatimInput[firstline=139,lastline=150,fontsize=\scriptsize]{/workspace/utils.py}
+
+
+\paragraph{Q: What is \texttt{\detokenize{eval_auc}} and what responsibility does it have?}
+\textbf{A:} This function is a core unit in the pipeline. Its responsibility is inferred from its name and how run scripts call it.
+
+\paragraph{Q: What does the implementation look like for \texttt{\detokenize{eval_auc}}?}
+\textbf{A:} Excerpt from the file:
+
+\vspace{1mm}
+\VerbatimInput[firstline=152,lastline=154,fontsize=\scriptsize]{/workspace/utils.py}
+
+
+\paragraph{Q: What is \texttt{\detokenize{eval_mae}} and what responsibility does it have?}
+\textbf{A:} This function is a core unit in the pipeline. Its responsibility is inferred from its name and how run scripts call it.
+
+\paragraph{Q: What does the implementation look like for \texttt{\detokenize{eval_mae}}?}
+\textbf{A:} Excerpt from the file:
+
+\vspace{1mm}
+\VerbatimInput[firstline=156,lastline=157,fontsize=\scriptsize]{/workspace/utils.py}
+
+
+\paragraph{Q: What is \texttt{\detokenize{eval_kl}} and what responsibility does it have?}
+\textbf{A:} This function is a core unit in the pipeline. Its responsibility is inferred from its name and how run scripts call it.
+
+\paragraph{Q: What does the implementation look like for \texttt{\detokenize{eval_kl}}?}
+\textbf{A:} Excerpt from the file:
+
+\vspace{1mm}
+\VerbatimInput[firstline=159,lastline=175,fontsize=\scriptsize]{/workspace/utils.py}
+
+
+\paragraph{Q: Example: end-to-end data flow involving this file}
+\textbf{A:} Core pipeline shape (schematic):
+
+\begin{Verbatim}[fontsize=\small]
+mae = eval_mae(labels, preds)
+xauc = eval_xauc(labels, preds)
+kl = eval_kl(labels, preds)
+\end{Verbatim}
+
+\paragraph{Q: Full source code of the Python file}
+\textbf{A:} The complete file is included verbatim for reference.
+
+\VerbatimInput[fontsize=\scriptsize]{/workspace/utils.py}
+
+\end{CJK*}
+\end{document}

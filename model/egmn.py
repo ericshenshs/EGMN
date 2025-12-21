@@ -1,3 +1,27 @@
+"""model/egmn.py.
+
+EGMN = Exponential-Gaussian Mixture Network.
+
+This module defines the repo's main distributional watch-time model. It is designed
+for heavy-tailed, multi-modal watch-time labels by combining:
+
+- **Exponential component**: captures the near-zero spike (quick-skip / fast swipe).
+- **Multiple Gaussian components**: capture the long tail and potential multi-modality.
+  The Gaussians are treated as left-truncated at 0 in the likelihood to avoid assigning
+  probability mass to negative watch-time.
+
+Data/contract assumptions:
+- Input comes from `dataloader/kuairec.py` as a `Dict[str, Tensor]` with keys defined by
+  the preprocessing `description` schema.
+- Sparse and sequence indices are `torch.long` (embedding lookup); continuous features and
+  masks are `torch.float32`.
+
+How it is used:
+- `run_egmn.py` constructs `EGMN`, calls `forward()` to get mixture parameters,
+  trains with `loss()` (NLL + L1(mean) + entropy regularizer), and evaluates via `predict()`
+  which returns the mixture-mean scalar.
+"""
+
 import torch
 import torch.nn as nn
 import torch.distributions as D
@@ -8,12 +32,39 @@ from model.layers import FactorizationMachine, MultiLayerPerceptron, DurationMul
 
 class EGMN(torch.nn.Module):
 
+    """EGMN (Exponential-Gaussian Mixture Network).
+    
+    Distributional watch-time predictor with a mixture head:
+    - Component 0: Exponential (captures heavy mass near 0 / quick-skip).
+    - Components 1..K: (truncated-at-0) Gaussians (capture long tail / multiple modes).
+    
+    Forward returns mixture parameters; predict() returns mixture-mean scalar.
+    """
+    # Notes:
+    # - Mixture head is tailored to watch-time: Exponential captures quick-skip spike; Gaussians capture long tail.
+    # - forward() emits mixture parameters; loss() computes NLL + auxiliary terms; predict() returns mixture mean used for MAE.
+    # - Assumes normalized labels (play_time) consistent with preprocessing; MAE is rescaled in run scripts.
     def __init__(self, description, embed_dim, share_mlp_dims, output_mlp_dims, dropout):
+        """__init__.
+        
+        Stores schema-derived feature metadata and builds submodules.
+        description determines which features are embedded (spr/seq) vs treated as continuous (ctn).
+        """
+        # Notes:
+        # - Parses description schema to decide which features are embedded vs treated as continuous.
+        # - Calls build() to allocate submodules sized to vocab sizes and embedding dimension.
         super().__init__()
         self.features = {name: (size, type) for name, size, type in description if (type in ["ctn", 'seq', 'spr'])}
         self.build(embed_dim, share_mlp_dims, output_mlp_dims, dropout)
     
     def build(self, embed_dim, share_mlp_dims, output_mlp_dims, dropout):
+        """build.
+        
+        Constructs submodules/parameters based on the dataset description (vocab sizes, feature types).
+        """
+        # Notes:
+        # - Creates per-feature embedding tables for spr/seq and per-feature linear layers for ctn.
+        # - Defines the MLP tower/head that converts concatenated feature representations into outputs.
         self.emb_layer = torch.nn.ModuleDict()
         self.ctn_emb_layer = torch.nn.ParameterDict()
         self.ctn_linear_layer = torch.nn.ModuleDict()
@@ -57,12 +108,31 @@ class EGMN(torch.nn.Module):
         return
 
     def init(self):
+        """init.
+        
+        Optional parameter initialization helper (uniform in this repo).
+        Not all run scripts call this explicitly.
+        """
+        # Notes:
+        # - Optional uniform initialization helper used by some experiments; not always called.
         for param in self.parameters():
             torch.nn.init.uniform_(param, -0.01, 0.01)
 
     def forward(self, x_dict):
+        """forward.
+        
+        Computes model outputs from a feature dict.
+        The exact output shape is model-specific and must match the run script loss.
+        
+        Args: self, x_dict.
+        """
+        # Notes:
+        # - Builds per-feature representations then concatenates them into a single vector per sample.
+        # - Sequence features are pooled by masked mean: sum(emb*mask)/sum(mask).
+        # - Final output is typically sigmoid-transformed in these baselines (matching their run scripts).
         linears = []
         embs = []
+        # Iterate over schema-declared features and build per-feature representations.
         for name, (_, type) in self.features.items():
             x = x_dict[name]
             if type == 'spr':
@@ -72,6 +142,8 @@ class EGMN(torch.nn.Module):
             elif type == 'seq':
                 seq_emb = self.emb_layer[name](x)
                 seq_mask = torch.unsqueeze(x_dict["{}mask".format(name)], dim=2)
+                # Masked mean pooling over sequence length (avoid attending to padding).
+                # Masked mean pooling over time dimension (padding tokens contribute 0).
                 embs.append(torch.sum(seq_emb * seq_mask, dim=1) / torch.sum(seq_mask, dim=1))
             else:
                 raise ValueError('unkwon feature: {}'.format(name))
@@ -90,6 +162,15 @@ class EGMN(torch.nn.Module):
         return pi, lambda_, mu, sigma
 
     def loss(self, y_true, pi, lambda_, mu, sigma, duration):
+        """loss.
+        
+        Computes three losses for EGMN training:
+        - nll_loss: negative log-likelihood under the mixture distribution (main objective).
+        - reg_loss: L1 between mixture-mean prediction and y_true (stabilizes and improves MAE).
+        - entropy_loss: sum(p * log p) (negative entropy); adding it encourages higher entropy.
+        """
+        # Notes:
+        # - This block explains intent, invariants, and key assumptions specific to this function.
         batch_size = y_true.shape[0]
         y_true = y_true.view(-1, 1)
 
@@ -114,6 +195,7 @@ class EGMN(torch.nn.Module):
         # sample_w = torch.where(y_true * video_durations.view(-1, 1) < 0.005, 0.5 * torch.ones_like(y_true), torch.ones_like(y_true) )
         # nll loss
         log_mix_probs = torch.log_softmax(pi, dim=1)
+        # Mixture log-likelihood: log(sum_k softmax(pi)_k * p_k(y)) implemented via logsumexp for stability.
         total_log_prob = torch.logsumexp(
             log_mix_probs + log_prob_all, 
             dim=1, keepdim=True
@@ -122,15 +204,24 @@ class EGMN(torch.nn.Module):
             
         # reconstruction loss
         pi = torch.softmax(pi, dim=1)
+        # Mixture mean used as a point prediction: E[y] = sum_k pi_k * mean_k (Exponential mean = 1/lambda).
         pred =  torch.sum(pi * torch.concat([1/lambda_, mu], dim=1), dim=1, keepdim=True)
         reg_loss = F.l1_loss(pred, y_true.float())
 
         # mixture entropy loss
+        # Negative entropy: sum(p log p). Adding it to the loss encourages higher entropy (less component collapse).
         entropy_loss = torch.sum(mix_probs * torch.log(mix_probs + 1e-6), dim=1).mean()
 
         return nll_loss, reg_loss, entropy_loss
 
     def get_quantile(self, pi, lambda_, mu, sigma, tau=0.5):
+        """get_quantile.
+        
+        Brute-force quantile approximation by scanning a dense grid and matching target CDF.
+        Expensive; typically used for analysis rather than training.
+        """
+        # Notes:
+        # - This block explains intent, invariants, and key assumptions specific to this function.
         exp_dist = D.Exponential(rate=lambda_.view(-1, 1))
         norm_dist_list = []
         for comp_idx in range(mu.shape[1]):
@@ -145,6 +236,13 @@ class EGMN(torch.nn.Module):
         return try_list[idx]
 
     def predict(self, x):
+        """predict.
+        
+        Inference helper returning the scalar mixture mean E[y | x].
+        Wraps computation in torch.no_grad() to reduce memory usage.
+        """
+        # Notes:
+        # - This block explains intent, invariants, and key assumptions specific to this function.
         with torch.no_grad():
             pi, lambda_, mu, sigma = self.forward(x)
             pi = torch.softmax(pi, dim=1)

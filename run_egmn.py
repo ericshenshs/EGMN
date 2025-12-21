@@ -1,3 +1,10 @@
+"""run_egmn.py.
+
+This file is part of the watch-time prediction codebase.
+Primary role: run_script.
+Executable experiment driver: loads data, trains a model, and reports metrics.
+"""
+
 import os
 import copy
 import torch
@@ -10,6 +17,17 @@ from utils import eval_mae, eval_xauc, eval_kl
 from sklearn.metrics import roc_auc_score
 
 def get_args():
+    """get_args.
+    
+    Parses CLI arguments for this experiment entrypoint.
+    The defaults define the baseline reproduction setting for this method.
+    
+    Args: (none).
+    Returns: argparse.Namespace.
+    """
+    # Notes:
+    # - Keep defaults stable for reproducibility (hyperparameters, device, batch size).
+    # - If you add new args, propagate them to model construction / loss computation consistently.
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset_name', default='kuairec')
     parser.add_argument('--dataset_path', default='./dataset/')
@@ -29,6 +47,16 @@ def get_args():
     return args
 
 def get_loaders(name, dataset_path, device, bsz):
+    """get_loaders.
+    
+    Builds the dataset artifact path and returns a dataset-specific DataLoader wrapper.
+    
+    Args: name, dataset_path, device, bsz.
+    Returns: KUAIRECDataLoader-like object with train/test loaders and .description.
+    """
+    # Notes:
+    # - Encodes the on-disk dataset layout assumption: dataset_path/dataset_name/{name}_data.pkl.
+    # - Returns a loader exposing .description schema, used to size embeddings and choose feature types.
     path = os.path.join(dataset_path, name, "{}_data.pkl".format(name))
     if name == 'kuairec':
         dataloaders = KUAIRECDataLoader(name, path, device, bsz=bsz)
@@ -37,6 +65,14 @@ def get_loaders(name, dataset_path, device, bsz):
     return dataloaders
 
 def mae_rescale_to_second(dataset, mae):
+    """mae_rescale_to_second.
+    
+    Converts MAE from normalized play_time units back to seconds for reporting.
+    The normalization constants mirror preprocessing conventions for each dataset.
+    """
+    # Notes:
+    # - Labels are normalized in preprocessing; this rescales MAE back into seconds for reporting.
+    # - Constants are dataset-specific and should match the normalization used in preprocessing.
     if dataset == 'kuairec':
         return mae * 999639 / 1000
     elif dataset == 'wechat':
@@ -47,6 +83,18 @@ def mae_rescale_to_second(dataset, mae):
         raise ValueError('unkown dataset name: {}'.format(dataset))
 
 def test(args, model, dataloaders):
+    """test.
+    
+    Evaluation loop for the trained model on the test split.
+    Collects predictions and computes MAE/XAUC/KL via utils.py.
+    
+    Args: args, model, dataloaders.
+    Returns: None (prints metrics).
+    """
+    # Notes:
+    # - Uses model.eval() + torch.no_grad() to produce deterministic predictions and reduce memory.
+    # - Always compute metrics via utils.py to keep cross-method comparisons consistent.
+    # - If the model predicts in a transformed space (D2Q/D2CO/TPM), decode back to play_time before scoring.
     model.eval()
     labels, scores, predicts = list(), list(), list()
     with torch.no_grad():
@@ -63,11 +111,13 @@ def test(args, model, dataloaders):
 
 if __name__ == '__main__':
     args = get_args()
+    # Set random seeds to make runs reproducible (within the limits of GPU nondeterminism).
     if args.seed > -1:
         np.random.seed(args.seed)
         torch.manual_seed(args.seed)
         torch.cuda.manual_seed(args.seed)
     res = {}
+    # Clear cached GPU memory (useful when running multiple scripts sequentially).
     torch.cuda.empty_cache()
 
     device = torch.device(args.device)
@@ -93,7 +143,9 @@ if __name__ == '__main__':
             loss = nll_loss + args.alpha * entropy_loss + args.beta * reg_loss 
 
             model.zero_grad()
+            # Backpropagate through the model to accumulate gradients in parameters.
             loss.backward()
+            # Apply one optimization step (parameter update).
             optimizer.step()
             epoch_loss += loss.item(); epoch_nll += nll_loss.item(); epoch_reg += reg_loss.item(); epoch_entropy += entropy_loss.item()
             total_loss += loss.item(); total_nll += nll_loss.item(); total_reg += reg_loss.item(); total_entropy += entropy_loss.item()

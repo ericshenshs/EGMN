@@ -1,0 +1,45 @@
+% This file is both:
+% - safe to \input from main.tex (it will do nothing), and
+% - usable as a standalone wrapper to compile an individual section file.
+%
+% Standalone usage example:
+%   pdflatex -jobname=repo_overview "\def\sectionfile{repo_overview.tex}\input{section_wrapper.tex}"
+%
+\makeatletter
+\@ifundefined{sectionfile}{\def\sectionfile{}}{}
+\edef\SectionFileTmp{\sectionfile}
+\ifx\SectionFileTmp\@empty
+  % When included from main.tex, do nothing and stop reading this file.
+  \makeatother
+  \let\SectionWrapperStop\endinput
+\else
+  \makeatother
+  \let\SectionWrapperStop\relax
+\fi
+\SectionWrapperStop
+
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\lstset{
+  basicstyle=\ttfamily\small,
+  columns=fullflexible,
+  breaklines=true,
+  upquote=true,
+  frame=single,
+  framerule=0.2pt,
+  tabsize=2
+}
+
+\newcommand{\SectionFile}{\sectionfile}
+\begin{document}
+\input{\SectionFile}
+\end{document}

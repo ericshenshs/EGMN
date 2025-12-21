@@ -1,0 +1,35 @@
+\documentclass[11pt]{article}
+\input{../tex_preamble.sty}
+
+\title{\texttt{model/cread.py} (Q\&A)}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\paragraph{Q: What is the purpose of \texttt{model/cread.py}?}
+\textbf{A:} It implements the CREAD baseline model used in this repo. The model maps feature dictionaries to a vector of per-bucket probabilities, intended to work with the discretization/reconstruction strategy implemented in \lstinline|run_cread.py|.
+
+\paragraph{Q: What does the model output and what does it represent?}
+\textbf{A:} \lstinline|forward(x_dict)| outputs a tensor of shape \lstinline|[batch, head_num]| after a sigmoid, where each head corresponds to a discretized threshold/bucket and is trained with a binary cross-entropy objective in the run script.
+
+\paragraph{Q: How are features encoded?}
+\textbf{A:} Similar to other models, it uses embeddings for sparse and sequence features (sequence pooled with a mask) and linear layers for continuous features; the pooled embeddings are fed into a shared MLP to produce a shared representation.
+
+\paragraph{Q: How does the ``multi-head'' output work?}
+\textbf{A:} After computing the shared representation, CREAD applies a separate small MLP per head (stored in \lstinline|output_mlps|), concatenates their outputs, and applies sigmoid to obtain per-head probabilities.
+
+\paragraph{Q: Code example: multi-head construction pattern?}
+\textbf{A:}
+\begin{lstlisting}[language=Python]
+self.output_mlps = torch.nn.ModuleList()
+for _ in range(head_num):
+    self.output_mlps.append(MultiLayerPerceptron(..., output_layer=True))
+\end{lstlisting}
+
+\paragraph{Q: Full source code?}
+\textbf{A:}
+\lstinputlisting[language=Python]{/workspace/model/cread.py}
+
+\end{document}

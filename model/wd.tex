@@ -1,0 +1,79 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{fancyvrb}
+\usepackage{listings}
+\usepackage{CJKutf8}
+\lstset{basicstyle=\ttfamily\small,columns=fullflexible,breaklines=true,upquote=true,frame=single,framerule=0.2pt,tabsize=2}
+
+\title{\texttt{\detokenize{model/wd.py}} (Q\&A Documentation)}
+\author{}
+\date{}
+\begin{document}
+\begin{CJK*}{UTF8}{gbsn}
+\maketitle
+
+\paragraph{Q: What does this file implement at a high level?}
+\textbf{A:} This file implements a Wide \textbackslash\{\}\& Deep baseline: an embedding+MLP deep part, optionally combined with a summed linear contribution from continuous features (wide part).
+
+\paragraph{Q: Why is this baseline needed?}
+\textbf{A:} Wide \textbackslash\{\}\& Deep is a standard recommender baseline and acts as a reference point when judging distributional models like EGMN.
+
+\paragraph{Q: What does this file export (public API)?}
+\textbf{A:} The public API is the set of classes/functions other modules import (sometimes re-exported by package initializers). The key top-level definitions detected here are:
+
+\begin{Verbatim}[fontsize=\small]
+class WideAndDeep  # methods: __init__, build, init, forward
+\end{Verbatim}
+
+\paragraph{Q: What are the main dependencies (imports) and why do they matter?}
+\textbf{A:} Imports show whether this file is model code (torch), data code (pandas), or evaluation/analysis (sklearn). They also determine runtime requirements.
+
+\vspace{1mm}
+\VerbatimInput[firstline=1,lastline=50,fontsize=\small]{/workspace/model/wd.py}
+
+
+\paragraph{Q: What is \texttt{\detokenize{WideAndDeep}} and what responsibility does it have?}
+\textbf{A:} This class is a core unit in the pipeline. Its responsibility is inferred from its name and how run scripts call it.
+
+\paragraph{Q: What are the important methods on \texttt{\detokenize{WideAndDeep}}?}
+\textbf{A:} In this repo, methods like forward/loss/predict define computation and training targets. The methods found are:
+
+\begin{Verbatim}[fontsize=\small]
+__init__
+build
+init
+forward
+\end{Verbatim}
+
+\paragraph{Q: What does the implementation look like for \texttt{\detokenize{WideAndDeep}}?}
+\textbf{A:} Excerpt from the file:
+
+\vspace{1mm}
+\VerbatimInput[firstline=5,lastline=58,fontsize=\scriptsize]{/workspace/model/wd.py}
+
+
+\paragraph{Q: Why is \texttt{\detokenize{WideAndDeep}} needed by training scripts?}
+\textbf{A:} Training scripts assume this class can be instantiated from the dataset description and can map a feature dictionary to outputs required by that script's loss. This separation makes it easy to swap models while reusing the same dataloader and metrics.
+
+\paragraph{Q: Example: end-to-end data flow involving this file}
+\textbf{A:} Core pipeline shape (schematic):
+
+\begin{Verbatim}[fontsize=\small]
+for features, label in dataloaders["train"]:
+    out = model(features)
+    loss = ...
+    loss.backward(); optimizer.step()
+\end{Verbatim}
+
+\paragraph{Q: Full source code of the Python file}
+\textbf{A:} The complete file is included verbatim for reference.
+
+\VerbatimInput[fontsize=\scriptsize]{/workspace/model/wd.py}
+
+\end{CJK*}
+\end{document}

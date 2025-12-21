@@ -1,0 +1,56 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{fancyvrb}
+\usepackage{listings}
+\usepackage{CJKutf8}
+\lstset{basicstyle=\ttfamily\small,columns=fullflexible,breaklines=true,upquote=true,frame=single,framerule=0.2pt,tabsize=2}
+
+\title{\texttt{\detokenize{dataset/kuairec/kuairec_process.py}} (Q\&A Documentation)}
+\author{}
+\date{}
+\begin{document}
+\begin{CJK*}{UTF8}{gbsn}
+\maketitle
+
+\paragraph{Q: What does this file do?}
+\textbf{A:} This is a preprocessing script that merges raw KuaiRec CSVs, engineers/normalizes labels and durations, builds vocabularies for sparse and sequence features, constructs a feature schema, creates train/test splits, and writes the final pickle used by training.
+
+\paragraph{Q: Why is the output schema (description) important?}
+\textbf{A:} All models and the dataloader depend on the description list to decide feature types and vocab sizes. If it is wrong, embeddings and tensors will not line up.
+
+\paragraph{Q: Why does this script also generate D2Q artifacts?}
+\textbf{A:} D2Q needs a duration bucket index and per-bucket play-time quantiles to map raw labels to a quantile target and back. The script produces these CSVs for reproducible D2Q training.
+
+\paragraph{Q: What does this file export (public API)?}
+\textbf{A:} The public API is the set of classes/functions other modules import (sometimes re-exported by package initializers). The key top-level definitions detected here are:
+
+\begin{Verbatim}[fontsize=\small]
+# (no top-level classes/functions detected)
+\end{Verbatim}
+
+\paragraph{Q: What are the main dependencies (imports) and why do they matter?}
+\textbf{A:} Imports show whether this file is model code (torch), data code (pandas), or evaluation/analysis (sklearn). They also determine runtime requirements.
+
+\vspace{1mm}
+\VerbatimInput[firstline=1,lastline=50,fontsize=\small]{/workspace/dataset/kuairec/kuairec_process.py}
+
+
+\paragraph{Q: Example: end-to-end data flow involving this file}
+\textbf{A:} Core pipeline shape (schematic):
+
+\begin{Verbatim}[fontsize=\small]
+# See the run scripts for end-to-end usage.
+\end{Verbatim}
+
+\paragraph{Q: Full source code of the Python file}
+\textbf{A:} The complete file is included verbatim for reference.
+
+\VerbatimInput[fontsize=\scriptsize]{/workspace/dataset/kuairec/kuairec_process.py}
+
+\end{CJK*}
+\end{document}

@@ -1,0 +1,27 @@
+\documentclass[11pt]{article}
+\input{../tex_preamble.sty}
+
+\title{\texttt{dataloader/\_\_init\_\_.py} (Q\&A)}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\paragraph{Q: What is the purpose of \texttt{dataloader/\_\_init\_\_.py}?}
+\textbf{A:} It makes the dataloader package easier to import by re-exporting the main loader class \lstinline|KUAIRECDataLoader| at the package level, so other scripts can do \lstinline|from dataloader import KUAIRECDataLoader|.
+
+\paragraph{Q: What symbols does it expose?}
+\textbf{A:} It imports \lstinline|KUAIRECDataLoader| from \lstinline|dataloader/kuairec.py| and exposes it as \lstinline|dataloader.KUAIRECDataLoader|.
+
+\paragraph{Q: What is an example of how other files use it?}
+\textbf{A:} Run scripts (e.g. \lstinline|run_egmn.py|) rely on this re-export to keep their imports short:
+\begin{lstlisting}[language=Python]
+from dataloader import KUAIRECDataLoader
+\end{lstlisting}
+
+\paragraph{Q: Full source code?}
+\textbf{A:}
+\lstinputlisting[language=Python]{/workspace/dataloader/__init__.py}
+
+\end{document}

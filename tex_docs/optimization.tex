@@ -1,0 +1,23 @@
+\section{Optimization / gradient descent (Q\&A)}
+
+\subsection{Q: What does gradient descent update in these models?}
+\noindent\textbf{A:} Gradient-based optimizers update every learnable tensor returned by \lstinline|model.parameters()| (embeddings, linear layers, MLP weights, and mixture-head weights), because those parameters determine the predicted distribution/score and therefore the loss.
+
+\subsection{Q: What objective is being minimized for EGMN in training?}
+\noindent\textbf{A:} The training script minimizes \(\mathcal{L}=\mathcal{L}_{\mathrm{NLL}}+\alpha\,\mathcal{L}_{\mathrm{entropy}}+\beta\,\mathcal{L}_{\mathrm{reg}}\), i.e. mixture negative log-likelihood plus an entropy term and an L1 reconstruction term weighted by \(\alpha,\beta\).
+
+\subsection{Q: What does one optimizer step look like in code?}
+\noindent\textbf{A:}
+\begin{lstlisting}[language=Python]
+optimizer = torch.optim.Adagrad(model.parameters(), lr=args.lr,
+                                weight_decay=args.weight_decay)
+optimizer.zero_grad()
+loss.backward()
+optimizer.step()
+\end{lstlisting}
+
+\subsection{Q: How do gradients flow to EGMN's mixture outputs?}
+\noindent\textbf{A:} The outputs \(\pi,\lambda,\mu,\sigma\) are not free parameters but functions of the network weights, so backpropagation differentiates the loss through these outputs into the head layers and shared trunk that produced them.
+
+\subsection{Q: Which things are not updated by gradient descent?}
+\noindent\textbf{A:} Inputs (feature/label tensors), preprocessing artifacts (e.g. bucket boundaries and quantile tables), and computations inside \lstinline|torch.no_grad()| are not updated because they are not learnable parameters in the optimizer.

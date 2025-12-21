@@ -1,0 +1,45 @@
+\section{Workflow (Q\&A)}
+
+\subsection{Q: What preprocessing is required for KuaiRec before training?}
+\noindent\textbf{A:} You must run \lstinline|dataset/kuairec/kuairec_process.py| to merge KuaiRec raw CSVs, build vocabularies for sparse/sequence features, create the feature schema (\lstinline|description|), and write a preprocessed pickle used by the dataloader.
+
+\subsection{Q: What files does preprocessing produce that training depends on?}
+\noindent\textbf{A:} Preprocessing produces \lstinline|kuairec_data.pkl| (train/test splits + schema) and also writes duration buckets and per-bucket play-time quantiles used by the D2Q baseline.
+
+\subsection{Q: What does the D2Q preprocessing artifact generation look like (schematically)?}
+\noindent\textbf{A:}
+\begin{lstlisting}[language=Python]
+n_bins = 50
+df["duration_bucket"], bins = pd.qcut(df["duration"], q=n_bins, labels=False,
+                                      retbins=True, duplicates="drop")
+desc.append(("duration_bucket", len(bins) - 1, "spr"))
+
+quantile_num = 100
+quantiles = np.linspace(0, 1, quantile_num + 1)
+quantile_df = (df_train.groupby("duration_bucket")["play_time"]
+               .quantile(quantiles).reset_index())
+quantile_df.pivot(index="duration_bucket", columns="quantile",
+                  values="play_time").to_csv(
+    "d2q_duration_bucket_playtime_quantiles.csv"
+)
+\end{lstlisting}
+
+\subsection{Q: How do you run training/evaluation for a method?}
+\noindent\textbf{A:} Run the corresponding entrypoint (e.g. \lstinline|python run_egmn.py --dataset_name kuairec|), which loads \lstinline|./dataset/kuairec/kuairec_data.pkl| via \lstinline|dataloader/kuairec.py|, trains for several epochs, evaluates on \lstinline|test|, and prints MAE/XAUC/KL.
+
+\subsection{Q: What does the EGMN training loop structure look like (schematically)?}
+\noindent\textbf{A:}
+\begin{lstlisting}[language=Python]
+for epoch in range(1, args.epoch + 1):
+    for features, label in dataloaders["train"]:
+        pi, lambda_, mu, sigma = model(features)
+        nll, reg, ent = model.loss(label.float(), pi, lambda_, mu, sigma,
+                                   features["duration"].view(-1, 1))
+        loss = nll + args.alpha * ent + args.beta * reg
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+\end{lstlisting}
+
+\subsection{Q: What dependencies does this repo assume?}
+\noindent\textbf{A:} The README indicates Python 3.x with PyTorch (tested around 2.1.0) and common scientific packages such as NumPy, pandas, and scikit-learn.

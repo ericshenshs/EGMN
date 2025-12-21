@@ -1,0 +1,37 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\lstset{
+  basicstyle=\ttfamily\small,
+  columns=fullflexible,
+  breaklines=true,
+  upquote=true,
+  frame=single,
+  framerule=0.2pt,
+  tabsize=2
+}
+
+\title{Repository Notes: EGMN (Watch Time Prediction)}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\input{section_wrapper.tex}
+
+\input{repo_overview.tex}
+\input{egmn_model.tex}
+\input{ranking_retrieval_outputs.tex}
+\input{optimization.tex}
+\input{workflow.tex}
+
+\end{document}

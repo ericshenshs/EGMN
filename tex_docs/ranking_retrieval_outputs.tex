@@ -1,0 +1,37 @@
+\section{Retrieval vs. ranking vs. outputs (Q\&A)}
+
+\subsection{Q: Is this a retrieval model?}
+\noindent\textbf{A:} No: the provided scripts score already-observed (user, video) interaction records from a dataset loader and do not implement large-scale candidate generation (ANN/top-$K$ retrieval) over a corpus.
+
+\subsection{Q: Is this a ranking model?}
+\noindent\textbf{A:} Not in the training-objective sense: the training loops use pointwise losses (likelihood/regression-style) per example rather than pairwise/listwise ranking losses over candidate sets.
+
+\subsection{Q: What is the final output used for evaluation?}
+\noindent\textbf{A:} Each model produces a scalar watch-time prediction per example for evaluation (e.g. EGMN uses the mixture mean; other baselines output scalars or reconstruct scalars from intermediate representations).
+
+\subsection{Q: What does EGMN output internally?}
+\noindent\textbf{A:} EGMN outputs mixture-parameter tensors \(\pi\) logits, \(\lambda\), and \((\mu,\sigma)\) for multiple Gaussian components, which define the mixture distribution and its mean prediction.
+
+\subsection{Q: What does the EGMN evaluation loop look like (schematically)?}
+\noindent\textbf{A:}
+\begin{lstlisting}[language=Python]
+with torch.no_grad():
+    for features, label in dataloaders["test"]:
+        y = model.predict(features)  # scalar per example
+\end{lstlisting}
+
+\subsection{Q: What are typical output shapes for some baselines?}
+\noindent\textbf{A:}
+\begin{lstlisting}[language=Python]
+# Wide&Deep: scalar
+p = wide_and_deep(features)      # [batch]
+
+# CREAD: per-bucket/head probabilities
+bucket_probs = cread(features)   # [batch, M]
+
+# D2Q: scalar quantile (later mapped back to value)
+q = d2q(features)                # [batch]
+\end{lstlisting}
+
+\subsection{Q: If training is pointwise, why report XAUC?}
+\noindent\textbf{A:} XAUC is a ranking-style evaluation metric computed by sorting examples by predicted score and measuring label-order agreement, but it does not change the fact that the provided training scripts optimize pointwise objectives.

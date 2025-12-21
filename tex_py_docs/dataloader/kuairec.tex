@@ -1,0 +1,35 @@
+\documentclass[11pt]{article}
+\input{../tex_preamble.sty}
+
+\title{\texttt{dataloader/kuairec.py} (Q\&A)}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\paragraph{Q: What is the purpose of \texttt{dataloader/kuairec.py}?}
+\textbf{A:} It defines the PyTorch dataset and dataloader wrappers for the preprocessed KuaiRec data. It is responsible for converting the stored pandas DataFrames (loaded from a pickle) into GPU/CPU tensors and returning batches in the ``features dict + label'' format expected by the models.
+
+\paragraph{Q: What are the two main classes in this file?}
+\textbf{A:} \lstinline|KUAIRECDataset| is a \lstinline|torch.utils.data.Dataset| that materializes all columns into tensors on a device; \lstinline|KUAIRECDataLoader| is a lightweight wrapper that reads the pickled data, constructs \lstinline|DataLoader| objects for each split (e.g. \lstinline|train| and \lstinline|test|), and exposes them via \lstinline|__getitem__|.
+
+\paragraph{Q: What does one sample look like (inputs and label)?}
+\textbf{A:} \lstinline|__getitem__| returns \lstinline|(features_dict, label)| where \lstinline|features_dict| maps feature names to tensors (shape depends on feature type), and \lstinline|label| is \lstinline|play_time| (a float scalar per row, normalized by preprocessing).
+
+\paragraph{Q: How are feature dtypes decided?}
+\textbf{A:} The \lstinline|format| method uses the feature \lstinline|description| (a list of tuples \lstinline|(name, size, type)|) to cast feature tensors: sparse/sequence IDs are cast to \lstinline|torch.long|, continuous/mask/other features to \lstinline|torch.float32|, while the label is left as-is.
+
+\paragraph{Q: What is a common usage pattern in training scripts?}
+\textbf{A:} Run scripts create a \lstinline|KUAIRECDataLoader| and then iterate over \lstinline|dataloaders['train']| or \lstinline|dataloaders['test']| to get batches.
+\begin{lstlisting}[language=Python]
+dataloaders = KUAIRECDataLoader("kuairec", "/path/to/kuairec_data.pkl", device, bsz=2048)
+for features, label in dataloaders["train"]:
+    y = model(features)
+\end{lstlisting}
+
+\paragraph{Q: Full source code?}
+\textbf{A:}
+\lstinputlisting[language=Python]{/workspace/dataloader/kuairec.py}
+
+\end{document}

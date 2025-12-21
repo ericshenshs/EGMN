@@ -1,3 +1,10 @@
+"""run_cread.py.
+
+This file is part of the watch-time prediction codebase.
+Primary role: run_script.
+Executable experiment driver: loads data, trains a model, and reports metrics.
+"""
+
 import os
 import copy
 import torch
@@ -9,6 +16,17 @@ from model import Cread
 from utils import eval_mae, eval_xauc, eval_kl
 
 def get_args():
+    """get_args.
+    
+    Parses CLI arguments for this experiment entrypoint.
+    The defaults define the baseline reproduction setting for this method.
+    
+    Args: (none).
+    Returns: argparse.Namespace.
+    """
+    # Notes:
+    # - Keep defaults stable for reproducibility (hyperparameters, device, batch size).
+    # - If you add new args, propagate them to model construction / loss computation consistently.
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset_name', default='kuairec')
     parser.add_argument('--dataset_path', default='./dataset/')
@@ -28,6 +46,16 @@ def get_args():
     return args
 
 def get_loaders(name, dataset_path, device, bsz):
+    """get_loaders.
+    
+    Builds the dataset artifact path and returns a dataset-specific DataLoader wrapper.
+    
+    Args: name, dataset_path, device, bsz.
+    Returns: KUAIRECDataLoader-like object with train/test loaders and .description.
+    """
+    # Notes:
+    # - Encodes the on-disk dataset layout assumption: dataset_path/dataset_name/{name}_data.pkl.
+    # - Returns a loader exposing .description schema, used to size embeddings and choose feature types.
     path = os.path.join(dataset_path, name, "{}_data.pkl".format(name))
     if name == 'kuairec':
         dataloaders = KUAIRECDataLoader(name, path, device, bsz=bsz)
@@ -36,6 +64,14 @@ def get_loaders(name, dataset_path, device, bsz):
     return dataloaders
 
 def discretize_time_label(playtime, split_nodes):
+    """discretize_time_label.
+    
+    CREAD label transform helper.
+    discretize_time_label() creates M binary threshold labels; restore_time_label() reconstructs a scalar.
+    """
+    # Notes:
+    # - Converts scalar play_time into M binary threshold labels: play_time > split_nodes[m].
+    # - Provides ordinal supervision for each head of the Cread model.
     playtime = playtime.reshape([-1, 1, 1])
     split_nodes = split_nodes.reshape([1, 1, -1])
     cmp_tensor = playtime > split_nodes
@@ -43,16 +79,40 @@ def discretize_time_label(playtime, split_nodes):
     return torch.squeeze(binary_labels)
 
 def restore_time_label(preds, split_nodes):
+    """restore_time_label.
+    
+    CREAD label transform helper.
+    discretize_time_label() creates M binary threshold labels; restore_time_label() reconstructs a scalar.
+    """
+    # Notes:
+    # - Converts threshold probabilities into an expected play_time by weighting bucket sizes.
+    # - This produces a scalar prediction comparable to other baselines.
     append_split_nodes = torch.concat((torch.tensor([0]).to(torch.float32).to(split_nodes.device), split_nodes)) 
     left_split_nodes, right_split_nodes = append_split_nodes[:-1], append_split_nodes[1:]
     bkt_size_list = right_split_nodes - left_split_nodes
     return torch.sum(preds * bkt_size_list.view([1, -1]), dim=1) # [bsz]
 
 def get_ord_criterion(preds):
+    """get_ord_criterion.
+    
+    Ordinal consistency penalty for threshold heads.
+    Encourages predicted threshold probabilities to be non-increasing as the threshold grows.
+    """
+    # Notes:
+    # - Penalizes violations of monotonicity across threshold heads (encourages ordered outputs).
+    # - Implements sum(max(pred[j+1] - pred[j], 0)) as in the original code.
     left_preds, right_preds = preds[:,:-1], preds[:,1:]
     return torch.sum(torch.clamp(right_preds - left_preds, min=0.0))
 
 def get_split_nodes(all_labels, M, alpha):
+    """get_split_nodes.
+    
+    Computes discretization thresholds (split nodes) for CREAD.
+    The thresholds determine how the continuous label is converted into ordinal supervision.
+    """
+    # Notes:
+    # - Computes split nodes (thresholds) for discretizing labels into ordinal bins.
+    # - Grid search selects alpha to balance within-bin and between-bin objectives used by CREAD.
     split_nodes = []
     cdf_list = []
     for m in range(1, M+1):
@@ -63,6 +123,14 @@ def get_split_nodes(all_labels, M, alpha):
     return torch.tensor(split_nodes), torch.tensor(cdf_list)
 
 def cread_grid_search(dataloader_train, M):
+    """cread_grid_search.
+    
+    Computes discretization thresholds (split nodes) for CREAD.
+    The thresholds determine how the continuous label is converted into ordinal supervision.
+    """
+    # Notes:
+    # - Computes split nodes (thresholds) for discretizing labels into ordinal bins.
+    # - Grid search selects alpha to balance within-bin and between-bin objectives used by CREAD.
     all_labels = []
     for (_, label) in dataloader_train:
         all_labels.append(label) 
@@ -86,6 +154,14 @@ def cread_grid_search(dataloader_train, M):
     return best_split
 
 def mae_rescale_to_second(dataset, mae):
+    """mae_rescale_to_second.
+    
+    Converts MAE from normalized play_time units back to seconds for reporting.
+    The normalization constants mirror preprocessing conventions for each dataset.
+    """
+    # Notes:
+    # - Labels are normalized in preprocessing; this rescales MAE back into seconds for reporting.
+    # - Constants are dataset-specific and should match the normalization used in preprocessing.
     if dataset == 'kuairec':
         return mae * 999639 / 1000
     elif dataset == 'wechat':
@@ -96,6 +172,18 @@ def mae_rescale_to_second(dataset, mae):
         raise ValueError('unkown dataset name: {}'.format(dataset))
 
 def test(args, model, dataloaders):
+    """test.
+    
+    Evaluation loop for the trained model on the test split.
+    Collects predictions and computes MAE/XAUC/KL via utils.py.
+    
+    Args: args, model, dataloaders.
+    Returns: None (prints metrics).
+    """
+    # Notes:
+    # - Uses model.eval() + torch.no_grad() to produce deterministic predictions and reduce memory.
+    # - Always compute metrics via utils.py to keep cross-method comparisons consistent.
+    # - If the model predicts in a transformed space (D2Q/D2CO/TPM), decode back to play_time before scoring.
     model.eval()
     labels, scores, predicts = list(), list(), list()
     with torch.no_grad():
@@ -111,11 +199,13 @@ def test(args, model, dataloaders):
 
 if __name__ == '__main__':
     args = get_args()
+    # Set random seeds to make runs reproducible (within the limits of GPU nondeterminism).
     if args.seed > -1:
         np.random.seed(args.seed)
         torch.manual_seed(args.seed)
         torch.cuda.manual_seed(args.seed)
     res = {}
+    # Clear cached GPU memory (useful when running multiple scripts sequentially).
     torch.cuda.empty_cache()
 
     device = torch.device(args.device)
@@ -152,7 +242,9 @@ if __name__ == '__main__':
             loss_ord = get_ord_criterion(preds)
             loss = loss_bce + args.restore_w * loss_restore + args.ord_w * loss_ord
             model.zero_grad()
+            # Backpropagate through the model to accumulate gradients in parameters.
             loss.backward()
+            # Apply one optimization step (parameter update).
             optimizer.step()
             epoch_loss += loss.item(); epoch_loss_bce += loss_bce.item(); epoch_loss_restore += args.restore_w * loss_restore.item(); epoch_loss_ord += args.ord_w * loss_ord.item()
             total_loss += loss.item(); total_loss_bce += loss_bce.item(); total_loss_restore += args.restore_w * loss_restore.item(); total_loss_ord += args.ord_w * loss_ord.item()

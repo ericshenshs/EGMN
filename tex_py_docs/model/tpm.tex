@@ -1,0 +1,27 @@
+\documentclass[11pt]{article}
+\input{../tex_preamble.sty}
+
+\title{\texttt{model/tpm.py} (Q\&A)}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\paragraph{Q: What is the purpose of \texttt{model/tpm.py}?}
+\textbf{A:} It implements the TPM baseline model used together with the tree-based encoding/decoding utilities in \lstinline|utils.py| and the training loop in \lstinline|run_tpm.py|. The model outputs a vector of logits corresponding to internal nodes of a binary decision tree over play-time intervals.
+
+\paragraph{Q: What are the inputs and outputs of \lstinline|TPM.forward|?}
+\textbf{A:} Input is the standard feature dictionary \lstinline|x_dict|. Output is a sigmoid-activated tensor shaped like \lstinline|[batch, class_num]| (where \lstinline|class_num| is configured in the run script as \lstinline|wr_bucknum - 1|).
+
+\paragraph{Q: How are features represented internally?}
+\textbf{A:} Like other models, TPM embeds sparse and sequence features (sequence pooled with mask) and ignores continuous linear terms in the current forward implementation by concatenating only embeddings before feeding them into an MLP classifier.
+
+\paragraph{Q: How does the ``TPM'' output connect to a scalar prediction?}
+\textbf{A:} The run script passes TPM outputs to \lstinline|get_tree_encoded_value| to decode a scalar play-time estimate from the tree probabilities and also compute a variance-like term used as a regularizer.
+
+\paragraph{Q: Full source code?}
+\textbf{A:}
+\lstinputlisting[language=Python]{/workspace/model/tpm.py}
+
+\end{document}

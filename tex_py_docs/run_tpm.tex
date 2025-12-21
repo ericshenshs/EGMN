@@ -1,0 +1,38 @@
+\documentclass[11pt]{article}
+\input{tex_preamble.sty}
+
+\title{\texttt{run\_tpm.py} (Q\&A)}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\paragraph{Q: What is the purpose of \texttt{run\_tpm.py}?}
+\textbf{A:} It trains and evaluates the TPM baseline using the tree-based encoding/decoding utilities in \lstinline|utils.py|. It builds percentile-based play-time buckets, trains a TPM classifier over the internal tree decisions, and decodes predictions back to a scalar watch-time estimate.
+
+\paragraph{Q: What are the key hyperparameters unique to TPM training here?}
+\textbf{A:} The key parameters are \lstinline|--wr_bucknum| (number of percentile buckets), \lstinline|--variance_weight| (weight on the variance/uncertainty term returned by decoding), \lstinline|--mse_weight| (weight on decoded scalar MSE), and \lstinline|--tree_cla_weight| (weight on the tree classification loss).
+
+\paragraph{Q: How are bucket boundaries determined?}
+\textbf{A:} The script uses \lstinline|get_playtime_percentiles_range| to compute percentile boundaries from the training labels, returning \lstinline|bucket_begins| and \lstinline|bucket_ends| tensors used for encoding and decoding.
+
+\paragraph{Q: What loss is optimized during training?}
+\textbf{A:} It combines three terms: (1) a tree classification loss over internal nodes (\lstinline|get_tree_classify_loss|), (2) an MSE loss between decoded scalar prediction and the label, and (3) a variance-like regularizer from decoding.
+
+\paragraph{Q: How is a scalar prediction produced at evaluation time?}
+\textbf{A:} The test loop calls the model to obtain tree probabilities, decodes them into \lstinline|encoded_y| using \lstinline|get_tree_encoded_value|, and uses that scalar for MAE/XAUC/KL evaluation.
+
+\paragraph{Q: Code example: the combined TPM loss?}
+\textbf{A:}
+\begin{lstlisting}[language=Python]
+loss = (tree_classify_loss * args.tree_cla_weight
+        + mse_loss * args.mse_weight
+        + variance * args.variance_weight)
+\end{lstlisting}
+
+\paragraph{Q: Full source code?}
+\textbf{A:}
+\lstinputlisting[language=Python]{/workspace/run_tpm.py}
+
+\end{document}

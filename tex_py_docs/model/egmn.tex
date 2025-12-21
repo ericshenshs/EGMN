@@ -1,0 +1,39 @@
+\documentclass[11pt]{article}
+\input{../tex_preamble.sty}
+
+\title{\texttt{model/egmn.py} (Q\&A)}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\paragraph{Q: What is the purpose of \texttt{model/egmn.py}?}
+\textbf{A:} It implements the proposed \textbf{EGMN} (Exponential--Gaussian Mixture Network) model for watch-time prediction. The model produces mixture parameters and provides both a likelihood-based training loss and a mean-based point predictor.
+
+\paragraph{Q: What is the model input and output interface?}
+\textbf{A:} The forward pass \lstinline|forward(x_dict)| takes a feature dictionary (as produced by \lstinline|dataloader/kuairec.py|) and returns \lstinline|(pi, lambda_, mu, sigma)|. The \lstinline|predict(x)| method returns a scalar point prediction per example computed as a mixture mean.
+
+\paragraph{Q: How does EGMN encode features?}
+\textbf{A:} It builds a feature registry from the dataset \lstinline|description|, uses \lstinline|Embedding| layers for sparse and sequence features, uses linear layers for continuous features, averages masked sequence embeddings, concatenates all representations, and feeds them into a shared MLP trunk.
+
+\paragraph{Q: What mixture components does EGMN parameterize?}
+\textbf{A:} The code uses one Exponential component (rate \lstinline|lambda_|) and multiple Normal components (means \lstinline|mu| and standard deviations \lstinline|sigma|). Mixture weights are produced from \lstinline|pi| logits via softmax.
+
+\paragraph{Q: What does \lstinline|loss(...)| compute?}
+\textbf{A:} It computes (1) a negative log-likelihood term via log-sum-exp over mixture components, (2) an L1 reconstruction term between the label and the mixture-mean prediction, and (3) an entropy-style regularizer on mixture weights. The run script combines these with weights \lstinline|alpha| and \lstinline|beta|.
+
+\paragraph{Q: Code example: mixture-mean prediction used in evaluation?}
+\textbf{A:}
+\begin{lstlisting}[language=Python]
+pi, lambda_, mu, sigma = model(features)
+weights = torch.softmax(pi, dim=1)
+component_means = torch.concat([1 / lambda_, mu], dim=1)
+y_hat = torch.sum(weights * component_means, dim=1)
+\end{lstlisting}
+
+\paragraph{Q: Full source code?}
+\textbf{A:}
+\lstinputlisting[language=Python]{/workspace/model/egmn.py}
+
+\end{document}

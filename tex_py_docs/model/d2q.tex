@@ -1,0 +1,33 @@
+\documentclass[11pt]{article}
+\input{../tex_preamble.sty}
+
+\title{\texttt{model/d2q.py} (Q\&A)}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\paragraph{Q: What is the purpose of \texttt{model/d2q.py}?}
+\textbf{A:} It implements the D2Q baseline model, which predicts a scalar ``quantile'' score (after sigmoid) from features. The accompanying run script (\lstinline|run_d2q.py|) maps watch-time labels into bucket-specific quantile space during training and maps predictions back to watch-time values during evaluation.
+
+\paragraph{Q: What are the inputs and outputs of \lstinline|D2Q.forward|?}
+\textbf{A:} Inputs are the standard feature dictionary \lstinline|x_dict|; outputs are a scalar per example (a sigmoid-activated value) intended to represent a normalized quantile within a duration bucket.
+
+\paragraph{Q: How are features encoded?}
+\textbf{A:} It uses embeddings for sparse and sequence features and linear transforms for continuous features, concatenates them, and feeds the result into \lstinline|MultiLayerPerceptronD2Q| (a Swish-based MLP).
+
+\paragraph{Q: Why does D2Q need duration buckets?}
+\textbf{A:} D2Q is designed to model the conditional distribution of play time given video duration by first bucketing duration. The mapping from watch time to quantile is bucket-specific (precomputed by preprocessing), and the model predicts in that normalized space.
+
+\paragraph{Q: Code example: forward pass shape (schematic)?}
+\textbf{A:}
+\begin{lstlisting}[language=Python]
+q = model(features)   # q: [batch] after sigmoid
+\end{lstlisting}
+
+\paragraph{Q: Full source code?}
+\textbf{A:}
+\lstinputlisting[language=Python]{/workspace/model/d2q.py}
+
+\end{document}

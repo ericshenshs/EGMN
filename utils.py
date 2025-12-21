@@ -1,3 +1,10 @@
+"""utils.py.
+
+This file is part of the watch-time prediction codebase.
+Primary role: utils.
+Shared metrics and helper functions used by multiple run scripts/models.
+"""
+
 import math
 import numpy as np
 import matplotlib.pyplot as plt
@@ -11,6 +18,14 @@ import torch
 import numpy as np
  
 def get_playtime_percentiles_range(dataloader, wr_bucknum, _device):
+    """get_playtime_percentiles_range.
+    
+    Computes percentile-based bucket boundaries from training labels.
+    Used by TPM to define bucket ranges (begins/ends) for encoding and decoding.
+    """
+    # Notes:
+    # - Aggregates all labels from a dataloader and computes percentile bucket boundaries.
+    # - Bucket boundaries are used by TPM to define leaf bucket midpoints and encoding ranges.
     all_play_time = []
     for _, (_, label) in enumerate(dataloader):
         play_time = label
@@ -24,6 +39,14 @@ def get_playtime_percentiles_range(dataloader, wr_bucknum, _device):
  
  
 def get_tree_classify_loss(label_dict, weight_dict, label_encoding_predict, tree_num_intervals=32):
+    """get_tree_classify_loss.
+    
+    Computes average BCE-with-logits loss over all internal tree nodes for TPM.
+    Each node corresponds to a binary decision; weights mask samples not applicable to that node.
+    """
+    # Notes:
+    # - Computes average BCE-with-logits loss over all internal tree nodes.
+    # - Weights allow masking out labels that are outside an interval's validity range.
     auxiliary_loss_ = 0.0
     height = int(math.log2(tree_num_intervals)) 
     for i in range(height):
@@ -37,6 +60,14 @@ def get_tree_classify_loss(label_dict, weight_dict, label_encoding_predict, tree
     return final_loss.float()
  
 def get_tree_encoded_label(label,tree_num_intervals, begins, ends, name="label_encoding"):
+    """get_tree_encoded_label.
+    
+    Encodes a scalar label into binary decisions at each internal node of a complete binary tree.
+    Also computes weights that restrict supervision to the node's interval.
+    """
+    # Notes:
+    # - Builds a dict of binary labels (left/right decisions) for each internal node in the tree.
+    # - Also builds weights to ignore samples outside the node's interval during training.
     label_dict = {}
     weight_dict = {}
     height = int(math.log2(tree_num_intervals))
@@ -62,6 +93,14 @@ def get_tree_encoded_label(label,tree_num_intervals, begins, ends, name="label_e
  
  
 def get_tree_encoded_value(label_encoding_predict, tree_num_intervals, begins, ends, name="encoded_playtime"):
+    """get_tree_encoded_value.
+    
+    Decodes TPM node probabilities into an expected play_time bucket midpoint.
+    Also returns a variance-like summary for uncertainty regularization.
+    """
+    # Notes:
+    # - Decodes node probabilities into a distribution over leaves and returns expected bucket midpoint.
+    # - Also returns a variance-like summary to penalize overly uncertain predictions during training.
     height = int(math.log2(tree_num_intervals))
     encoded_prob_list = []
     
@@ -86,6 +125,7 @@ def get_tree_encoded_value(label_encoding_predict, tree_num_intervals, begins, e
             
             cur_code = classifier_idx
         encoded_prob_list.append(temp)
+    # Convert accumulated log-probabilities of each leaf path into probabilities.
     encoded_prob = torch.exp(torch.stack(encoded_prob_list, dim=1)) 
     encoded_playtime = torch.sum(temp_encoded_playtime * encoded_prob, dim=-1, keepdim=True)
     
@@ -97,12 +137,34 @@ def get_tree_encoded_value(label_encoding_predict, tree_num_intervals, begins, e
  
  
 class InversePairsCalc:
+    """InversePairsCalc.
+    
+    Counts inversions in a list (used to compute XAUC efficiently).
+    The inversion count equals the number of out-of-order label pairs after sorting by score.
+    """
+    # Notes:
+    # - Used by eval_xauc(): counts inversions in the label sequence after sorting by prediction.
+    # - Inversion count provides an O(n log n) alternative to enumerating all pairs for ranking evaluation.
     def InversePairs(self, data):
+        """InversePairs.
+        
+        Counts inversions (out-of-order pairs) in a list using a merge-sort style algorithm.
+        Used by eval_xauc() to score ranking consistency efficiently.
+        """
+        # Notes:
+        # - Merge-sort based inversion counting (O(n log n)); used to compute XAUC efficiently.
         if not data :
             return False
         if len(data)==1 :
             return 0
         def merge(tuple_fir,tuple_sec):
+            """merge.
+            
+            Internal helper for inversion-counting merge sort.
+            Returns a sorted list and the inversion count accumulated during merging.
+            """
+            # Notes:
+            # - Merge-sort based inversion counting (O(n log n)); used to compute XAUC efficiently.
             array_before = tuple_fir[0]
             cnt_before = tuple_fir[1]
             array_after = tuple_sec[0]
@@ -128,6 +190,13 @@ class InversePairsCalc:
             return array_merge[::-1],cnt
  
         def mergesort(array):
+            """mergesort.
+            
+            Internal helper for inversion-counting merge sort.
+            Returns a sorted list and the inversion count accumulated during merging.
+            """
+            # Notes:
+            # - Merge-sort based inversion counting (O(n log n)); used to compute XAUC efficiently.
             if len(array)==1:
                 return (array,0)
             cut = math.floor(len(array)/2)
@@ -137,7 +206,16 @@ class InversePairsCalc:
         return mergesort(data)[1]
  
 def eval_xauc(labels, pres):
+    """eval_xauc.
+    
+    Computes XAUC: fraction of correctly ordered label pairs after sorting by prediction.
+    Implementation: sort by prediction, then count inversions in the label sequence.
+    """
+    # Notes:
+    # - Sort predictions descending and count inversions in labels to compute pairwise ordering accuracy.
+    # - Equivalent to the fraction of correctly ordered pairs among all possible pairs.
     label_preds = zip(labels.reshape(-1), pres.reshape(-1))
+    # Sort by prediction and count label inversions for XAUC (ranking consistency).
     sorted_label_preds = sorted(
         label_preds, key=lambda lc: lc[1], reverse=True)
     label_preds_len = len(sorted_label_preds)
@@ -150,14 +228,33 @@ def eval_xauc(labels, pres):
     return xauc
 
 def eval_auc(labels, pres):
+    """eval_auc.
+    
+    ROC-AUC via sklearn. Only meaningful for binary labels.
+    """
+    # Notes:
+    # - Standard ROC-AUC via sklearn; only meaningful if labels are binary/treated as binary.
     auc = roc_auc_score(labels, pres)
     return  auc
 
 def eval_mae(labels, scores):
+    """eval_mae.
+    
+    Mean absolute error on numpy arrays.
+    """
+    # Notes:
+    # - Simple mean(|label - pred|) on numpy arrays; used for primary regression reporting.
     return np.mean(np.abs(labels - scores))
 
 def eval_kl(samples_p, samples_q, bins=100, epsilon=1e-10):
     # 计算直方图分箱概率
+    """eval_kl.
+    
+    Approximates KL divergence between two sample distributions using histogram binning.
+    Clips probabilities by epsilon to avoid log(0) and division by zero.
+    """
+    # Notes:
+    # - Histogram-based KL approximation; uses shared bins and epsilon clipping for stability.
     hist_p, bin_edges = np.histogram(samples_p, bins=bins, density=True)
     hist_q, _ = np.histogram(samples_q, bins=bin_edges, density=True)
     

@@ -1,0 +1,48 @@
+\documentclass[11pt]{article}
+\input{../../tex_preamble.sty}
+
+\title{\texttt{dataset/kuairec/kuairec\_process.py} (Q\&A)}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\paragraph{Q: What is the purpose of \texttt{dataset/kuairec/kuairec\_process.py}?}
+\textbf{A:} This script preprocesses raw KuaiRec CSV files into a single pickled dataset (\lstinline|kuairec_data.pkl|) plus auxiliary artifacts used by some baselines (e.g. duration buckets and per-bucket play-time quantiles for D2Q). It is intended to be run once before training any models.
+
+\paragraph{Q: Is this a library module or an executable script?}
+\textbf{A:} It is written as a pure script: it executes processing steps at import time (no \lstinline|main()| / \lstinline|if __name__ == '__main__'| guard), so it should be run directly (and not imported) in a controlled working directory that contains the expected \lstinline|row_data/| inputs.
+
+\paragraph{Q: What raw files does it expect?}
+\textbf{A:} It reads multiple CSVs under \lstinline|row_data/| (e.g. \lstinline|big_matrix.csv|, \lstinline|user_features.csv|, \lstinline|item_daily_features.csv|, \lstinline|item_categories.csv|, and a caption/category file), merges them by \lstinline|user_id| and \lstinline|video_id|, fills missing values, and filters out invalid rows (e.g. ads and non-positive durations).
+
+\paragraph{Q: What label and core continuous feature does it create?}
+\textbf{A:} It constructs \lstinline|play_time| as a normalized version of \lstinline|play_duration|, and \lstinline|duration| as a normalized/clipped version of \lstinline|video_duration|. It also caps extreme \lstinline|play_time| values relative to \lstinline|duration| (a heuristic to remove outliers).
+
+\paragraph{Q: How are sparse and sequence features encoded?}
+\textbf{A:} For each sparse feature column, it builds a vocabulary mapping unique tokens to integer IDs. For the sequence feature \lstinline|feat|, it tokenizes by commas, truncates/pads to length 10, and writes a corresponding \lstinline|featmask| to indicate valid positions; both are recorded in the output \lstinline|description| schema.
+
+\paragraph{Q: What additional artifacts are created for D2Q?}
+\textbf{A:} It discretizes \lstinline|duration| into \lstinline|n_bins=50| buckets using quantiles (\lstinline|pd.qcut|), writes bucket ranges to \lstinline|d2q_duration_bucket_ranges.csv|, and writes per-bucket \lstinline|play_time| quantiles to \lstinline|d2q_duration_bucket_playtime_quantiles.csv|.
+
+\paragraph{Q: What does the final output pickle contain?}
+\textbf{A:} The pickle contains a dict with keys \lstinline|train| and \lstinline|test| holding DataFrames, plus \lstinline|description| containing a list of feature descriptors \lstinline|(name, size, type)| used by the dataloader and models.
+
+\paragraph{Q: Code example: the final saved object shape (schematic)?}
+\textbf{A:}
+\begin{lstlisting}[language=Python]
+data = {
+    "train": df_train,
+    "test": df_test,
+    "description": desc,
+}
+with open("./kuairec_data.pkl", "wb+") as f:
+    pickle.dump(data, f)
+\end{lstlisting}
+
+\paragraph{Q: Full source code?}
+\textbf{A:}
+\lstinputlisting[language=Python]{/workspace/dataset/kuairec/kuairec_process.py}
+
+\end{document}

@@ -1,0 +1,152 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{fancyvrb}
+\usepackage{listings}
+\usepackage{CJKutf8}
+\lstset{basicstyle=\ttfamily\small,columns=fullflexible,breaklines=true,upquote=true,frame=single,framerule=0.2pt,tabsize=2}
+
+\title{\texttt{\detokenize{run_cread.py}} (Q\&A Documentation)}
+\author{}
+\date{}
+\begin{document}
+\begin{CJK*}{UTF8}{gbsn}
+\maketitle
+
+\paragraph{Q: What does this run script control?}
+\textbf{A:} It controls the full experiment loop: args, data loading, model instantiation, training with a specific loss/optimizer, and evaluation with shared metrics.
+
+\paragraph{Q: Why is the model not responsible for training/evaluation?}
+\textbf{A:} Keeping training logic in the script makes it easy to compare models under the same protocol and avoids mixing I/O/metrics with differentiable code.
+
+\paragraph{Q: What does this file export (public API)?}
+\textbf{A:} The public API is the set of classes/functions other modules import (sometimes re-exported by package initializers). The key top-level definitions detected here are:
+
+\begin{Verbatim}[fontsize=\small]
+def get_args(...)  # function
+def get_loaders(...)  # function
+def discretize_time_label(...)  # function
+def restore_time_label(...)  # function
+def get_ord_criterion(...)  # function
+def get_split_nodes(...)  # function
+def cread_grid_search(...)  # function
+def mae_rescale_to_second(...)  # function
+def test(...)  # function
+\end{Verbatim}
+
+\paragraph{Q: What are the main dependencies (imports) and why do they matter?}
+\textbf{A:} Imports show whether this file is model code (torch), data code (pandas), or evaluation/analysis (sklearn). They also determine runtime requirements.
+
+\vspace{1mm}
+\VerbatimInput[firstline=1,lastline=50,fontsize=\small]{/workspace/run_cread.py}
+
+
+\paragraph{Q: What is \texttt{\detokenize{get_args}} and what responsibility does it have?}
+\textbf{A:} This function is a core unit in the pipeline. Its responsibility is inferred from its name and how run scripts call it.
+
+\paragraph{Q: What does the implementation look like for \texttt{\detokenize{get_args}}?}
+\textbf{A:} Excerpt from the file:
+
+\vspace{1mm}
+\VerbatimInput[firstline=11,lastline=28,fontsize=\scriptsize]{/workspace/run_cread.py}
+
+
+\paragraph{Q: What is \texttt{\detokenize{get_loaders}} and what responsibility does it have?}
+\textbf{A:} This function is a core unit in the pipeline. Its responsibility is inferred from its name and how run scripts call it.
+
+\paragraph{Q: What does the implementation look like for \texttt{\detokenize{get_loaders}}?}
+\textbf{A:} Excerpt from the file:
+
+\vspace{1mm}
+\VerbatimInput[firstline=30,lastline=36,fontsize=\scriptsize]{/workspace/run_cread.py}
+
+
+\paragraph{Q: What is \texttt{\detokenize{discretize_time_label}} and what responsibility does it have?}
+\textbf{A:} This function is a core unit in the pipeline. Its responsibility is inferred from its name and how run scripts call it.
+
+\paragraph{Q: What does the implementation look like for \texttt{\detokenize{discretize_time_label}}?}
+\textbf{A:} Excerpt from the file:
+
+\vspace{1mm}
+\VerbatimInput[firstline=38,lastline=43,fontsize=\scriptsize]{/workspace/run_cread.py}
+
+
+\paragraph{Q: What is \texttt{\detokenize{restore_time_label}} and what responsibility does it have?}
+\textbf{A:} This function is a core unit in the pipeline. Its responsibility is inferred from its name and how run scripts call it.
+
+\paragraph{Q: What does the implementation look like for \texttt{\detokenize{restore_time_label}}?}
+\textbf{A:} Excerpt from the file:
+
+\vspace{1mm}
+\VerbatimInput[firstline=45,lastline=49,fontsize=\scriptsize]{/workspace/run_cread.py}
+
+
+\paragraph{Q: What is \texttt{\detokenize{get_ord_criterion}} and what responsibility does it have?}
+\textbf{A:} This function is a core unit in the pipeline. Its responsibility is inferred from its name and how run scripts call it.
+
+\paragraph{Q: What does the implementation look like for \texttt{\detokenize{get_ord_criterion}}?}
+\textbf{A:} Excerpt from the file:
+
+\vspace{1mm}
+\VerbatimInput[firstline=51,lastline=53,fontsize=\scriptsize]{/workspace/run_cread.py}
+
+
+\paragraph{Q: What is \texttt{\detokenize{get_split_nodes}} and what responsibility does it have?}
+\textbf{A:} This function is a core unit in the pipeline. Its responsibility is inferred from its name and how run scripts call it.
+
+\paragraph{Q: What does the implementation look like for \texttt{\detokenize{get_split_nodes}}?}
+\textbf{A:} Excerpt from the file:
+
+\vspace{1mm}
+\VerbatimInput[firstline=55,lastline=63,fontsize=\scriptsize]{/workspace/run_cread.py}
+
+
+\paragraph{Q: What is \texttt{\detokenize{cread_grid_search}} and what responsibility does it have?}
+\textbf{A:} This function is a core unit in the pipeline. Its responsibility is inferred from its name and how run scripts call it.
+
+\paragraph{Q: What does the implementation look like for \texttt{\detokenize{cread_grid_search}}?}
+\textbf{A:} Excerpt from the file:
+
+\vspace{1mm}
+\VerbatimInput[firstline=65,lastline=86,fontsize=\scriptsize]{/workspace/run_cread.py}
+
+
+\paragraph{Q: What is \texttt{\detokenize{mae_rescale_to_second}} and what responsibility does it have?}
+\textbf{A:} This function is a core unit in the pipeline. Its responsibility is inferred from its name and how run scripts call it.
+
+\paragraph{Q: What does the implementation look like for \texttt{\detokenize{mae_rescale_to_second}}?}
+\textbf{A:} Excerpt from the file:
+
+\vspace{1mm}
+\VerbatimInput[firstline=88,lastline=96,fontsize=\scriptsize]{/workspace/run_cread.py}
+
+
+\paragraph{Q: What is \texttt{\detokenize{test}} and what responsibility does it have?}
+\textbf{A:} This function is a core unit in the pipeline. Its responsibility is inferred from its name and how run scripts call it.
+
+\paragraph{Q: What does the implementation look like for \texttt{\detokenize{test}}?}
+\textbf{A:} Excerpt from the file:
+
+\vspace{1mm}
+\VerbatimInput[firstline=98,lastline=110,fontsize=\scriptsize]{/workspace/run_cread.py}
+
+
+\paragraph{Q: Example: end-to-end data flow involving this file}
+\textbf{A:} Core pipeline shape (schematic):
+
+\begin{Verbatim}[fontsize=\small]
+python run_cread.py --dataset_name kuairec --dataset_path ./dataset --device cuda:0
+# Internally: load dataloaders → build model → train → evaluate
+\end{Verbatim}
+
+\paragraph{Q: Full source code of the Python file}
+\textbf{A:} The complete file is included verbatim for reference.
+
+\VerbatimInput[fontsize=\scriptsize]{/workspace/run_cread.py}
+
+\end{CJK*}
+\end{document}

@@ -1,0 +1,46 @@
+\section{Repository overview (Q\&A)}
+
+\subsection{Q: What is this repository?}
+\noindent\textbf{A:} This is a PyTorch research codebase for \textbf{video watch-time prediction}, implementing the EGMN paper and several baselines, with preprocessing and experiments primarily for the public \href{https://kuairec.com/}{KuaiRec} dataset.
+
+\subsection{Q: What are the main folders and entrypoints?}
+\noindent\textbf{A:} Models live in \lstinline|model/|, dataset loading is in \lstinline|dataloader/|, KuaiRec preprocessing is in \lstinline|dataset/kuairec/|, runnable experiments are in \lstinline|run_*.py|, and shared metrics/utilities are in \lstinline|utils.py|.
+
+\subsection{Q: What metrics are reported by the run scripts?}
+\noindent\textbf{A:} The run scripts evaluate on \lstinline|test| and report \textbf{MAE} (absolute error), \textbf{XAUC} (ordering agreement after sorting by predicted score), and \textbf{KL} divergence between binned empirical distributions.
+
+\subsection{Q: How do you run EGMN and baselines (example commands)?}
+\noindent\textbf{A:}
+\begin{lstlisting}[language=bash]
+# Train + evaluate the proposed EGMN model on KuaiRec
+python run_egmn.py --dataset_name kuairec --device cuda:0
+
+# Baselines (examples)
+python run_cread.py --dataset_name kuairec
+python run_d2q.py --dataset_name kuairec
+\end{lstlisting}
+
+\subsection{Q: What does the dataloader yield to the model?}
+\noindent\textbf{A:}
+\begin{lstlisting}[language=Python]
+# Pseudocode reflecting dataloader/kuairec.py
+for features, label in dataloaders["train"]:
+    # features: dict[str, Tensor], label: normalized play_time
+    y_hat = model.predict(features)
+\end{lstlisting}
+
+\subsection{Q: What do the evaluation helper functions look like (schematically)?}
+\noindent\textbf{A:}
+\begin{lstlisting}[language=Python]
+# utils.py (simplified)
+def eval_mae(labels, scores):
+    return np.mean(np.abs(labels - scores))
+
+def eval_xauc(labels, preds):
+    # ranks by prediction, then measures label ordering agreement
+    ...
+
+def eval_kl(samples_p, samples_q, bins=100, epsilon=1e-10):
+    # binned empirical KL divergence
+    ...
+\end{lstlisting}
