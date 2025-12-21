@@ -96,6 +96,7 @@ class TPM(torch.nn.Module):
                 seq_emb = self.emb_layer[name](x)
                 seq_mask = torch.unsqueeze(x_dict["{}mask".format(name)], dim=2)
                 # Masked mean pooling over sequence length (avoid attending to padding).
+                # Masked mean pooling over time dimension (padding tokens contribute 0).
                 embs.append(torch.sum(seq_emb * seq_mask, dim=1) / torch.sum(seq_mask, dim=1))
             else:
                 raise ValueError('unkwon feature: {}'.format(name))

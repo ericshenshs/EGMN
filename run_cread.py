@@ -199,11 +199,13 @@ def test(args, model, dataloaders):
 
 if __name__ == '__main__':
     args = get_args()
+    # Set random seeds to make runs reproducible (within the limits of GPU nondeterminism).
     if args.seed > -1:
         np.random.seed(args.seed)
         torch.manual_seed(args.seed)
         torch.cuda.manual_seed(args.seed)
     res = {}
+    # Clear cached GPU memory (useful when running multiple scripts sequentially).
     torch.cuda.empty_cache()
 
     device = torch.device(args.device)
@@ -240,7 +242,9 @@ if __name__ == '__main__':
             loss_ord = get_ord_criterion(preds)
             loss = loss_bce + args.restore_w * loss_restore + args.ord_w * loss_ord
             model.zero_grad()
+            # Backpropagate through the model to accumulate gradients in parameters.
             loss.backward()
+            # Apply one optimization step (parameter update).
             optimizer.step()
             epoch_loss += loss.item(); epoch_loss_bce += loss_bce.item(); epoch_loss_restore += args.restore_w * loss_restore.item(); epoch_loss_ord += args.ord_w * loss_ord.item()
             total_loss += loss.item(); total_loss_bce += loss_bce.item(); total_loss_restore += args.restore_w * loss_restore.item(); total_loss_ord += args.ord_w * loss_ord.item()

@@ -1,8 +1,25 @@
 """model/egmn.py.
 
-This file is part of the watch-time prediction codebase.
-Primary role: model.
-Defines one or more PyTorch modules that map feature dicts to predictions.
+EGMN = Exponential-Gaussian Mixture Network.
+
+This module defines the repo's main distributional watch-time model. It is designed
+for heavy-tailed, multi-modal watch-time labels by combining:
+
+- **Exponential component**: captures the near-zero spike (quick-skip / fast swipe).
+- **Multiple Gaussian components**: capture the long tail and potential multi-modality.
+  The Gaussians are treated as left-truncated at 0 in the likelihood to avoid assigning
+  probability mass to negative watch-time.
+
+Data/contract assumptions:
+- Input comes from `dataloader/kuairec.py` as a `Dict[str, Tensor]` with keys defined by
+  the preprocessing `description` schema.
+- Sparse and sequence indices are `torch.long` (embedding lookup); continuous features and
+  masks are `torch.float32`.
+
+How it is used:
+- `run_egmn.py` constructs `EGMN`, calls `forward()` to get mixture parameters,
+  trains with `loss()` (NLL + L1(mean) + entropy regularizer), and evaluates via `predict()`
+  which returns the mixture-mean scalar.
 """
 
 import torch
@@ -126,6 +143,7 @@ class EGMN(torch.nn.Module):
                 seq_emb = self.emb_layer[name](x)
                 seq_mask = torch.unsqueeze(x_dict["{}mask".format(name)], dim=2)
                 # Masked mean pooling over sequence length (avoid attending to padding).
+                # Masked mean pooling over time dimension (padding tokens contribute 0).
                 embs.append(torch.sum(seq_emb * seq_mask, dim=1) / torch.sum(seq_mask, dim=1))
             else:
                 raise ValueError('unkwon feature: {}'.format(name))
@@ -177,6 +195,7 @@ class EGMN(torch.nn.Module):
         # sample_w = torch.where(y_true * video_durations.view(-1, 1) < 0.005, 0.5 * torch.ones_like(y_true), torch.ones_like(y_true) )
         # nll loss
         log_mix_probs = torch.log_softmax(pi, dim=1)
+        # Mixture log-likelihood: log(sum_k softmax(pi)_k * p_k(y)) implemented via logsumexp for stability.
         total_log_prob = torch.logsumexp(
             log_mix_probs + log_prob_all, 
             dim=1, keepdim=True
@@ -185,10 +204,12 @@ class EGMN(torch.nn.Module):
             
         # reconstruction loss
         pi = torch.softmax(pi, dim=1)
+        # Mixture mean used as a point prediction: E[y] = sum_k pi_k * mean_k (Exponential mean = 1/lambda).
         pred =  torch.sum(pi * torch.concat([1/lambda_, mu], dim=1), dim=1, keepdim=True)
         reg_loss = F.l1_loss(pred, y_true.float())
 
         # mixture entropy loss
+        # Negative entropy: sum(p log p). Adding it to the loss encourages higher entropy (less component collapse).
         entropy_loss = torch.sum(mix_probs * torch.log(mix_probs + 1e-6), dim=1).mean()
 
         return nll_loss, reg_loss, entropy_loss

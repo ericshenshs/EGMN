@@ -1,8 +1,19 @@
 """model/layers.py.
 
-This file is part of the watch-time prediction codebase.
-Primary role: model.
-Defines one or more PyTorch modules that map feature dicts to predictions.
+Reusable neural building blocks shared by multiple models in this repo.
+
+Why this file exists:
+- Most baselines in this repo share common patterns (categorical embeddings, MLP towers,
+  interaction layers like FM/AFM, cross networks). Centralizing them prevents subtle
+  inconsistencies across methods and makes comparisons fairer.
+
+Key conventions used in this file:
+- **Field offsets**: For multi-field categorical inputs, we often use a single embedding table
+  sized `sum(field_dims)` and add per-field offsets so each field maps to its own segment.
+- **Shapes**:
+  - Categorical multi-field input: (B, num_fields) long indices.
+  - FM/AFM input: (B, num_fields, embed_dim) float embeddings.
+  - MLP input: (B, d) float vectors.
 """
 
 import numpy as np

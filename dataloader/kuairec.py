@@ -83,14 +83,17 @@ class KUAIRECDataset(Dataset):
         # Notes:
         # - Returns a dict of feature tensors for a single row; models assume this dict is complete.
         # - Label is the normalized play_time scalar (squeezed).
+        # Build a per-row feature dict; models rely on exact feature-name keys.
         return {name: self.name2array[name][index] for name in self.features}, \
                 self.name2array[self.label][index].squeeze()
 
     def __len__(self):
         """__len__.
         
-        Function defined in dataloader/kuairec.py.
-        Args: self.
+        Returns the number of rows (samples) in this split.
+        
+        This is used by PyTorch DataLoader for sizing and by training scripts for logging
+        epoch lengths / iteration counts.
         """
         # Notes:
         # - Length equals number of rows in the underlying DataFrame.

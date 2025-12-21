@@ -111,11 +111,13 @@ def test(args, model, dataloaders):
 
 if __name__ == '__main__':
     args = get_args()
+    # Set random seeds to make runs reproducible (within the limits of GPU nondeterminism).
     if args.seed > -1:
         np.random.seed(args.seed)
         torch.manual_seed(args.seed)
         torch.cuda.manual_seed(args.seed)
     res = {}
+    # Clear cached GPU memory (useful when running multiple scripts sequentially).
     torch.cuda.empty_cache()
 
     device = torch.device(args.device)
@@ -148,7 +150,9 @@ if __name__ == '__main__':
             mse_loss = mse_loss_fn(encoded_y, label.view(-1,1).float()) 
             loss =  tree_classify_loss * args.tree_cla_weight  + mse_loss * args.mse_weight + variance * args.variance_weight 
             model.zero_grad()
+            # Backpropagate through the model to accumulate gradients in parameters.
             loss.backward()
+            # Apply one optimization step (parameter update).
             optimizer.step()
             epoch_loss += loss.item()
             total_loss += loss.item()

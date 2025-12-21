@@ -125,6 +125,7 @@ def get_tree_encoded_value(label_encoding_predict, tree_num_intervals, begins, e
             
             cur_code = classifier_idx
         encoded_prob_list.append(temp)
+    # Convert accumulated log-probabilities of each leaf path into probabilities.
     encoded_prob = torch.exp(torch.stack(encoded_prob_list, dim=1)) 
     encoded_playtime = torch.sum(temp_encoded_playtime * encoded_prob, dim=-1, keepdim=True)
     
